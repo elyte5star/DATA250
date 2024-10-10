@@ -10,7 +10,13 @@ from flask import current_app as app
 from flask import flash, redirect, render_template, send_from_directory, url_for
 
 from social_insecurity import sqlite
-from social_insecurity.forms import CommentsForm, FriendsForm, IndexForm, PostForm, ProfileForm
+from social_insecurity.forms import (
+    CommentsForm,
+    FriendsForm,
+    IndexForm,
+    PostForm,
+    ProfileForm,
+)
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -72,7 +78,11 @@ def stream(username: str):
 
     if post_form.is_submitted():
         if post_form.image.data:
-            path = Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / post_form.image.data.filename
+            path = (
+                Path(app.instance_path)
+                / app.config["UPLOADS_FOLDER_PATH"]
+                / post_form.image.data.filename
+            )
             post_form.image.data.save(path)
 
         insert_post = f"""
@@ -89,7 +99,9 @@ def stream(username: str):
          ORDER BY p.creation_time DESC;
         """
     posts = sqlite.query(get_posts)
-    return render_template("stream.html.j2", title="Stream", username=username, form=post_form, posts=posts)
+    return render_template(
+        "stream.html.j2", title="Stream", username=username, form=post_form, posts=posts
+    )
 
 
 @app.route("/comments/<string:username>/<int:post_id>", methods=["GET", "POST"])
@@ -129,7 +141,12 @@ def comments(username: str, post_id: int):
     post = sqlite.query(get_post, one=True)
     comments = sqlite.query(get_comments)
     return render_template(
-        "comments.html.j2", title="Comments", username=username, form=comments_form, post=post, comments=comments
+        "comments.html.j2",
+        title="Comments",
+        username=username,
+        form=comments_form,
+        post=post,
+        comments=comments,
     )
 
 
@@ -183,7 +200,13 @@ def friends(username: str):
         WHERE f.u_id = {user["id"]} AND f.f_id != {user["id"]};
         """
     friends = sqlite.query(get_friends)
-    return render_template("friends.html.j2", title="Friends", username=username, friends=friends, form=friends_form)
+    return render_template(
+        "friends.html.j2",
+        title="Friends",
+        username=username,
+        friends=friends,
+        form=friends_form,
+    )
 
 
 @app.route("/profile/<string:username>", methods=["GET", "POST"])
@@ -213,10 +236,18 @@ def profile(username: str):
         sqlite.query(update_profile)
         return redirect(url_for("profile", username=username))
 
-    return render_template("profile.html.j2", title="Profile", username=username, user=user, form=profile_form)
+    return render_template(
+        "profile.html.j2",
+        title="Profile",
+        username=username,
+        user=user,
+        form=profile_form,
+    )
 
 
 @app.route("/uploads/<string:filename>")
 def uploads(filename):
     """Provides an endpoint for serving uploaded files."""
-    return send_from_directory(Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename)
+    return send_from_directory(
+        Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename
+    )

@@ -33,7 +33,7 @@ def index():
     login_form = index_form.login
     register_form = index_form.register
 
-    if login_form.is_submitted() and login_form.submit.data:
+    if login_form.validate_on_submit():
         get_user = f"""
             SELECT *
             FROM Users
@@ -48,7 +48,7 @@ def index():
         elif user["password"] == login_form.password.data:
             return redirect(url_for("stream", username=login_form.username.data))
 
-    elif register_form.is_submitted() and register_form.submit.data:
+    elif register_form.validate_on_submit():
         insert_user = f"""
             INSERT INTO Users (username, first_name, last_name, password)
             VALUES ('{register_form.username.data}', '{register_form.first_name.data}', '{register_form.last_name.data}', '{register_form.password.data}');

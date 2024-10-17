@@ -46,12 +46,12 @@ class LoginForm(FlaskForm):
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
-        validators=validators.DataRequired(),
+        validators=[validators.DataRequired()],
     )
     password = PasswordField(
         label="Password",
         render_kw={"placeholder": "Password"},
-        validators=validators.DataRequired(),
+        validators=[validators.DataRequired()],
     )
     remember_me = BooleanField(
         label="Remember me"
@@ -65,17 +65,17 @@ class RegisterForm(FlaskForm):
     first_name = StringField(
         label="First Name",
         render_kw={"placeholder": "First Name"},
-        validators=validators.DataRequired(),
+        validators=[validators.DataRequired()],
     )
     last_name = StringField(
         label="Last Name",
         render_kw={"placeholder": "Last Name"},
-        validators=validators.DataRequired(),
+        validators=[validators.DataRequired()],
     )
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
-        validators=validators.Length(min=4, max=25),
+        validators=[validators.Length(min=4, max=25)],
     )
     password = PasswordField(
         label="Password",
@@ -85,17 +85,14 @@ class RegisterForm(FlaskForm):
             validators.EqualTo("confirm", message="Passwords must match"),
         ],
     )
-    confirm_password = PasswordField(
+    confirm = PasswordField(
         label="Confirm Password",
         render_kw={"placeholder": "Confirm Password"},
-        validators=validators.DataRequired(),
     )
     submit = SubmitField(label="Sign Up")
 
 
 class IndexForm(FlaskForm):
-    """Provides the composite form for the index page."""
-
     login = cast(LoginForm, FormField(LoginForm))
     register = cast(RegisterForm, FormField(RegisterForm))
 
@@ -116,7 +113,7 @@ class CommentsForm(FlaskForm):
     comment = TextAreaField(
         label="New Comment",
         render_kw={"placeholder": "What do you have to say?"},
-        validators=validators.DataRequired(),
+        validators=[validators.DataRequired()],
     )
     submit = SubmitField(label="Comment")
 
@@ -127,7 +124,7 @@ class FriendsForm(FlaskForm):
     username = StringField(
         label="Friend's username",
         render_kw={"placeholder": "Username"},
-        validators=validators.DataRequired(),
+        validators=[validators.DataRequired()],
     )
     submit = SubmitField(label="Add Friend")
 
@@ -138,29 +135,29 @@ class ProfileForm(FlaskForm):
     education = StringField(
         label="Education",
         render_kw={"placeholder": "Highest education"},
-        validators=[DataRequired()],
+        validators=[validators.DataRequired()],
     )
     employment = StringField(
         label="Employment",
         render_kw={"placeholder": "Current employment"},
-        validators=[DataRequired()],
+        validators=[validators.DataRequired()],
     )
     music = StringField(
         label="Favorite song",
         render_kw={"placeholder": "Favorite song"},
-        validators=[DataRequired()],
+        validators=[validators.DataRequired()],
     )
     movie = StringField(
         label="Favorite movie",
         render_kw={"placeholder": "Favorite movie"},
-        validators=[DataRequired()],
+        validators=[validators.DataRequired()],
     )
     nationality = StringField(
         label="Nationality",
         render_kw={"placeholder": "Your nationality"},
-        validators=[DataRequired()],
+        validators=[validators.DataRequired()],
     )
     birthday = DateField(
-        label="Birthday", default=datetime.now(), validators=[DataRequired()]
+        label="Birthday", default=datetime.now(), validators=[validators.DataRequired()]
     )
     submit = SubmitField(label="Update Profile")

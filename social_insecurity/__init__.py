@@ -32,9 +32,9 @@ def create_app(test_config=None) -> Flask:
         app.config.from_object(test_config)
 
     sqlite.init_app(app, schema="schema.sql")
-    login.init_app(app)
-    bcrypt.init_app(app)
-    csrf.init_app(app)
+    # login.init_app(app)
+    # bcrypt.init_app(app)
+    # csrf.init_app(app)
 
     with app.app_context():
         create_uploads_folder(app)

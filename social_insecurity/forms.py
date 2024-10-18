@@ -81,7 +81,7 @@ class RegisterForm(FlaskForm):
         label="Password",
         render_kw={"placeholder": "Password"},
         validators=[
-            validators.DataRequired(),
+            validators.Length(min=8, max=35),
             validators.EqualTo("confirm", message="Passwords must match"),
         ],
     )

@@ -1,18 +1,21 @@
 
-def authenticate_user():
+from social_insecurity import sqlite
+
+
+class User:
     pass
 
 
 def create_comment():
-   pass
+    pass
 
 
 def get_user_comments():
     pass
 
 
-def get_user_profile():
-    pass
+def get_principal(userid: str):
+    return User
 
 
 def create_user_friend():

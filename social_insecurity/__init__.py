@@ -7,19 +7,18 @@ from pathlib import Path
 from shutil import rmtree
 from typing import cast
 
-from flask import Flask, current_app
+from flask import Flask, current_app  # type: ignore
+from flask_bcrypt import Bcrypt  # type: ignore
+from flask_login import LoginManager  # type: ignore
+from flask_wtf.csrf import CSRFProtect  # type: ignore
 
 from social_insecurity.config import Config
 from social_insecurity.database import SQLite3
-
-from flask_login import LoginManager
-from flask_bcrypt import Bcrypt
-from flask_wtf.csrf import CSRFProtect
+from social_insecurity.database.base import db
 
 sqlite = SQLite3()
-# TODO: Handle login management better, maybe with flask_login?
-login = LoginManager()
-# TODO: The passwords are stored in plaintext, this is not secure at all. I should probably use bcrypt or something
+login_manager = LoginManager()
+login_manager.session_protection = "strong"
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
 
@@ -32,12 +31,14 @@ def create_app(test_config=None) -> Flask:
         app.config.from_object(test_config)
 
     sqlite.init_app(app, schema="schema.sql")
-    # login.init_app(app)
-    # bcrypt.init_app(app)
-    # csrf.init_app(app)
+    db.init_app(app)
+    login_manager.init_app(app)
+    bcrypt.init_app(app)
+    csrf.init_app(app)
 
     with app.app_context():
         create_uploads_folder(app)
+        db.create_all()
 
     @app.cli.command("reset")
     def reset_command() -> None:

@@ -1,10 +1,17 @@
 from flask_login import UserMixin
+from social_insecurity import sqlite, bcrypt
+import sqlite3
+import datetime
+
+
+# get the current datetime and store it in a variable
+currentDateTime = datetime.datetime.now()
 
 
 class User(UserMixin):
-    def __init__(self, id, email, password):
+    def __init__(self, id, username, password):
         self.id = id
-        self.email = email
+        self.username = username
         self.password = password
         self.authenticated = False
 
@@ -21,20 +28,103 @@ class User(UserMixin):
         return self.id
 
 
+def create_user(data: dict):
+    username = data["username"]
+    hashed_password = bcrypt.generate_password_hash(data["password"])
+    first_name = data["first_name"]
+    last_name = data["last_name"]
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """INSERT INTO Users (username, first_name,
+            last_name, password,creation_time) VALUES (?, ?, ?, ?, ?)""",
+            [username, first_name, last_name, hashed_password, currentDateTime],
+        )
+        row_count = cur.rowcount
+        sqlite.connection.commit()
+        response = "Done - Rows affected: " + str(row_count)
+    except sqlite3.Error as err:
+        response = "Error - " + err.args[0]
+    finally:
+        cur.close()
+        return response
+
+
 def get_user_by_username(username: str):
-    pass
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute("SELECT * from Users where username = (?)", [username])
+        result = cur.fetchone()
+    except sqlite3.Error as err:
+        result = "Error - " + err.args[0]
+    finally:
+        cur.close()
+        return result
 
 
-def create_comment(username: str, post_id: int):
-    pass
+def create_comment(post_id: int, user_id: int, data: str):
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """INSERT INTO Comments (p_id, u_id, comment,
+            creation_time) VALUES (?, ?,?,?)""",
+            [post_id, user_id, data, currentDateTime],
+        )
+        row_count = cur.rowcount
+        sqlite.connection.commit()
+        response = "Done - Rows affected: " + str(row_count)
+    except sqlite3.Error as err:
+        response = "Error - " + err.args[0]
+    finally:
+        cur.close()
+        return response
 
 
-def get_user_comments(username: str):
-    pass
+def get_post(post_id: int):
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            "SELECT * FROM Posts AS p JOIN Users AS u ON p.u_id = u.id  WHERE p.id = (?)",
+            [post_id],
+        )
+        result = cur.fetchone()
+    except sqlite3.Error as err:
+        result = "Error - " + err.args[0]
+    finally:
+        cur.close()
+        return result
 
 
-def get_principal(userid: str):
-    return
+def get_user_comments(post_id: str):
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """
+        SELECT DISTINCT *
+        FROM Comments AS c JOIN Users AS u ON c.u_id = u.id
+        WHERE c.p_id=(?)
+        ORDER BY c.creation_time DESC
+        """,
+            [post_id],
+        )
+        result = cur.fetchall()
+    except sqlite3.Error as err:
+        result = "Error - " + err.args[0]
+    finally:
+        cur.close()
+        return result
+
+
+def get_principal(user_id: str):
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute("SELECT * from Users where id = (?)", [user_id])
+        result = cur.fetchone()
+    except sqlite3.Error as err:
+        result = "Error - " + err.args[0]
+    finally:
+        cur.close()
+        return result
 
 
 def create_user_friend():

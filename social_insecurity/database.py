@@ -96,45 +96,12 @@ class SQLite3:
         """Returns the connection to the SQLite3 database."""
         conn = getattr(g, "flask_sqlite3_connection", None)
         if conn is None:
-            conn = g.flask_sqlite3_connection = sqlite3.connect(self._path)
+            conn = g.flask_sqlite3_connection = sqlite3.connect(
+                self._path,
+                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+            )
             conn.row_factory = sqlite3.Row
         return conn
-
-    # TODO: Add more specific query methods to simplify code
-    def get_all(self, param):
-        cur = self.connection.cursor()
-        try:
-            cur.execute(param)
-            result = cur.fetchall()
-        except sqlite3.Error as err:
-            result = "Error - " + err.args[0]
-        finally:
-            self.close()
-            return result
-
-    def get_one(self, param):
-        cur = self.connection.cursor()
-        try:
-            cur.execute(query)
-            result = cur.fetchone()
-        except sqlite3.Error as err:
-            result = "Error - " + err.args[0]
-        finally:
-            cur.close()
-            return result
-
-    def put(self, query):
-        cur = self.connection.cursor()
-        try:
-            cur.execute(query)
-            row_count = cur.rowcount
-            self.connection.commit()
-            response = "Done - Rows affected: " + str(row_count)
-        except sqlite3.Error as err:
-            response = "Error - " + err.args[0]
-        finally:
-            cur.close()
-            return response
 
     def _init_database(self, schema: PathLike | str) -> None:
         """Initializes the database with the supplied schema if it does not exist yet."""

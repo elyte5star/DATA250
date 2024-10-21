@@ -8,6 +8,7 @@ CREATE TABLE [Users] (
   first_name VARCHAR,
   last_name VARCHAR,
   [password] VARCHAR,
+  [creation_time] DATETIME,
   education VARCHAR DEFAULT 'Unknown',
   employment VARCHAR DEFAULT 'Unknown',
   music VARCHAR DEFAULT 'Unknown',
@@ -57,5 +58,6 @@ VALUES (
   'test',
   'Jane',
   'Doe',
-  'password123'
+  'password123',CURRENT_TIMESTAMP
+
 );

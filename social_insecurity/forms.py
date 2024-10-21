@@ -100,9 +100,7 @@ class IndexForm(FlaskForm):
 class PostForm(FlaskForm):
     """Provides the post form for the application."""
 
-    content = TextAreaField(
-        label="New Post", render_kw={"placeholder": "What are you thinking about?"}
-    )
+    content = TextAreaField(label="New Post", render_kw={"placeholder": "What are you thinking about?"})
     image = FileField(label="Image")
     submit = SubmitField(label="Post")
 
@@ -157,7 +155,5 @@ class ProfileForm(FlaskForm):
         render_kw={"placeholder": "Your nationality"},
         validators=[validators.DataRequired()],
     )
-    birthday = DateField(
-        label="Birthday", default=datetime.now(), validators=[validators.DataRequired()]
-    )
+    birthday = DateField(label="Birthday", default=datetime.now(), validators=[validators.DataRequired()])
     submit = SubmitField(label="Update Profile")

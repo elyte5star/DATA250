@@ -64,17 +64,8 @@ class SQLite3:
         path: Optional[PathLike | str] = None,
         schema: Optional[PathLike | str] = None,
     ) -> None:
-        """Initializes the extension.
-
-        params:
-            app: The Flask application to initialize the extension with.
-            path (optional): The path to the database file. Is relative to the instance folder.
-            schema (optional): The path to the schema file. Is relative to the application root folder.
-
-        """
         if not hasattr(app, "extensions"):
             app.extensions = {}
-
         if "sqlite3" not in app.extensions:
             app.extensions["sqlite3"] = self
         else:
@@ -109,24 +100,41 @@ class SQLite3:
             conn.row_factory = sqlite3.Row
         return conn
 
-    def query(self, query: str, *args, one: bool = False) -> Any:
-        """Queries the database and returns the result.'
-
-        params:
-            query: The SQL query to execute.
-            one: Whether to return a single row or a list of rows.
-            args: Additional arguments to pass to the query.
-
-        returns: A single row, a list of rows or None.
-
-        """
-        cursor = self.connection.execute(query, args)
-        response = cursor.fetchone() if one else cursor.fetchall()
-        cursor.close()
-        self.connection.commit()
-        return response
-
     # TODO: Add more specific query methods to simplify code
+    def get_all(self, param):
+        cur = self.connection.cursor()
+        try:
+            cur.execute(param)
+            result = cur.fetchall()
+        except sqlite3.Error as err:
+            result = "Error - " + err.args[0]
+        finally:
+            self.close()
+            return result
+
+    def get_one(self, param):
+        cur = self.connection.cursor()
+        try:
+            cur.execute(query)
+            result = cur.fetchone()
+        except sqlite3.Error as err:
+            result = "Error - " + err.args[0]
+        finally:
+            cur.close()
+            return result
+
+    def put(self, query):
+        cur = self.connection.cursor()
+        try:
+            cur.execute(query)
+            row_count = cur.rowcount
+            self.connection.commit()
+            response = "Done - Rows affected: " + str(row_count)
+        except sqlite3.Error as err:
+            response = "Error - " + err.args[0]
+        finally:
+            cur.close()
+            return response
 
     def _init_database(self, schema: PathLike | str) -> None:
         """Initializes the database with the supplied schema if it does not exist yet."""

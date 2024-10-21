@@ -1,9 +1,9 @@
+from social_insecurity import sqlite, login_manager
+from social_insecurity.repository import User
 
-from social_insecurity import sqlite
-
-
-class User:
-    pass
+@login_manager.user_loader
+def load_user(user_id) -> User:
+    return User
 
 
 def create_comment():
@@ -15,6 +15,7 @@ def get_user_comments():
 
 
 def get_principal(userid: str):
+    
     return User
 
 

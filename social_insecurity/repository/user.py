@@ -2,10 +2,7 @@ from flask_login import UserMixin
 from social_insecurity import sqlite, bcrypt
 import sqlite3
 import datetime
-
-
-# get the current datetime and store it in a variable
-currentDateTime = datetime.datetime.now()
+import uuid
 
 
 class User(UserMixin):
@@ -28,17 +25,32 @@ class User(UserMixin):
         return self.id
 
 
+def get_indent() -> str:
+    return str(uuid.uuid4())
+
+
+def time_now_utc() -> datetime:
+    return datetime.now()
+
+
 def create_user(data: dict):
     username = data["username"]
-    hashed_password = bcrypt.generate_password_hash(data["password"])
+    hashed_password = bcrypt.generate_password_hash(data["password"], 12).decode()
     first_name = data["first_name"]
     last_name = data["last_name"]
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
-            """INSERT INTO Users (username, first_name,
-            last_name, password,creation_time) VALUES (?, ?, ?, ?, ?)""",
-            [username, first_name, last_name, hashed_password, currentDateTime],
+            """INSERT INTO Users (username, userid,first_name,
+            last_name, password,creation_time) VALUES (?, ?, ?, ?, ?, ?)""",
+            [
+                username,
+                get_indent(),
+                first_name,
+                last_name,
+                hashed_password,
+                time_now_utc(),
+            ],
         )
         row_count = cur.rowcount
         sqlite.connection.commit()
@@ -68,7 +80,7 @@ def create_comment(post_id: int, user_id: int, data: str):
         cur.execute(
             """INSERT INTO Comments (p_id, u_id, comment,
             creation_time) VALUES (?, ?,?,?)""",
-            [post_id, user_id, data, currentDateTime],
+            [post_id, user_id, data, time_now_utc()],
         )
         row_count = cur.rowcount
         sqlite.connection.commit()
@@ -84,7 +96,8 @@ def get_post(post_id: int):
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
-            "SELECT * FROM Posts AS p JOIN Users AS u ON p.u_id = u.id  WHERE p.id = (?)",
+            """SELECT * FROM Posts AS p JOIN Users AS u ON p.u_id=
+            u.id  WHERE p.id = (?)""",
             [post_id],
         )
         result = cur.fetchone()

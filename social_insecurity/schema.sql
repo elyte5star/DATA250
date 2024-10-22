@@ -7,6 +7,7 @@ CREATE TABLE [Users] (
   username VARCHAR,
   first_name VARCHAR,
   last_name VARCHAR,
+   userid VARCHAR,
   [password] VARCHAR,
   [creation_time] DATETIME,
   education VARCHAR DEFAULT 'Unknown',
@@ -50,12 +51,14 @@ CREATE TABLE [Comments](
 
 INSERT INTO Users (
   username,
+  userid,
   first_name,
   last_name,
   [password]
 )
 VALUES (
   'test',
+  '259dcf8f-3036-47fc-b961-c3d237431584',
   'Jane',
   'Doe',
   'password123',CURRENT_TIMESTAMP

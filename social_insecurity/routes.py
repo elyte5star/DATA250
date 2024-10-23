@@ -34,28 +34,28 @@ def index():
     register_form = index_form.register
 
     if login_form.validate_on_submit():
-        get_user = f"""
-            SELECT *
-            FROM Users
-            WHERE username = '{login_form.username.data}';
-            """
-        user = sqlite.query(get_user, one=True)
+        # get_user = f"""
+        #     SELECT *
+        #     FROM Users
+        #     WHERE username = '{login_form.username.data}';
+        #     """
+        # user = sqlite.query(get_user, one=True)
 
-        if user is None:
-            flash("Sorry, this user does not exist!", category="warning")
-        elif user["password"] != login_form.password.data:
-            flash("Sorry, wrong password!", category="warning")
-        elif user["password"] == login_form.password.data:
-            return redirect(url_for("stream", username=login_form.username.data))
+        # if user is None:
+        #     flash("Sorry, this user does not exist!", category="warning")
+        # elif user["password"] != login_form.password.data:
+        #     flash("Sorry, wrong password!", category="warning")
+        # elif user["password"] == login_form.password.data:
+        #     return redirect(url_for("stream", username=login_form.username.data))
 
     elif register_form.validate_on_submit():
-        insert_user = f"""
-            INSERT INTO Users (username, first_name, last_name, password)
-            VALUES ('{register_form.username.data}', '{register_form.first_name.data}', '{register_form.last_name.data}', '{register_form.password.data}');
-            """
-        sqlite.query(insert_user)
-        flash("User successfully created!", category="success")
-        return redirect(url_for("index"))
+        # insert_user = f"""
+        #     INSERT INTO Users (username, first_name, last_name, password)
+        #     VALUES ('{register_form.username.data}', '{register_form.first_name.data}', '{register_form.last_name.data}', '{register_form.password.data}');
+        #     """
+        # sqlite.query(insert_user)
+        # flash("User successfully created!", category="success")
+        # return redirect(url_for("index"))
 
     return render_template("index.html.j2", title="Welcome", form=index_form)
 
@@ -69,39 +69,39 @@ def stream(username: str):
     Otherwise, it reads the username from the URL and displays all posts from the user and their friends.
     """
     post_form = PostForm()
-    get_user = f"""
-        SELECT *
-        FROM Users
-        WHERE username = '{username}';
-        """
-    user = sqlite.query(get_user, one=True)
+    # get_user = f"""
+    #     SELECT *
+    #     FROM Users
+    #     WHERE username = '{username}';
+    #     """
+    # user = sqlite.query(get_user, one=True)
 
     if post_form.is_submitted():
-        if post_form.image.data:
-            path = (
-                Path(app.instance_path)
-                / app.config["UPLOADS_FOLDER_PATH"]
-                / post_form.image.data.filename
-            )
-            post_form.image.data.save(path)
+        # if post_form.image.data:
+        #     path = (
+        #         Path(app.instance_path)
+        #         / app.config["UPLOADS_FOLDER_PATH"]
+        #         / post_form.image.data.filename
+        #     )
+        #     post_form.image.data.save(path)
 
-        insert_post = f"""
-            INSERT INTO Posts (u_id, content, image, creation_time)
-            VALUES ({user["id"]}, '{post_form.content.data}', '{post_form.image.data.filename}', CURRENT_TIMESTAMP);
-            """
-        sqlite.query(insert_post)
-        return redirect(url_for("stream", username=username))
+        # insert_post = f"""
+        #     INSERT INTO Posts (u_id, content, image, creation_time)
+        #     VALUES ({user["id"]}, '{post_form.content.data}', '{post_form.image.data.filename}', CURRENT_TIMESTAMP);
+        #     """
+        # sqlite.query(insert_post)
+        # return redirect(url_for("stream", username=username))
 
-    get_posts = f"""
-         SELECT p.*, u.*, (SELECT COUNT(*) FROM Comments WHERE p_id = p.id) AS cc
-         FROM Posts AS p JOIN Users AS u ON u.id = p.u_id
-         WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id = {user["id"]}) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = {user["id"]}) OR p.u_id = {user["id"]}
-         ORDER BY p.creation_time DESC;
-        """
-    posts = sqlite.query(get_posts)
-    return render_template(
-        "stream.html.j2", title="Stream", username=username, form=post_form, posts=posts
-    )
+    # get_posts = f"""
+    #      SELECT p.*, u.*, (SELECT COUNT(*) FROM Comments WHERE p_id = p.id) AS cc
+    #      FROM Posts AS p JOIN Users AS u ON u.id = p.u_id
+    #      WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id = {user["id"]}) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = {user["id"]}) OR p.u_id = {user["id"]}
+    #      ORDER BY p.creation_time DESC;
+    #     """
+    # posts = sqlite.query(get_posts)
+    # return render_template(
+    #     "stream.html.j2", title="Stream", username=username, form=post_form, posts=posts
+    # )
 
 
 @app.route("/comments/<string:username>/<int:post_id>", methods=["GET", "POST"])

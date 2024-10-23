@@ -6,8 +6,8 @@ import uuid
 
 
 class User(UserMixin):
-    def __init__(self, id, username, password):
-        self.id = id
+    def __init__(self, userid, username, password):
+        self.id = userid
         self.username = username
         self.password = password
         self.authenticated = False
@@ -22,7 +22,7 @@ class User(UserMixin):
         return self.authenticated
 
     def get_id(self):
-        return self.id
+        return self.userid
 
 
 def get_indent() -> str:
@@ -42,13 +42,15 @@ def create_user(data: dict):
         cur = sqlite.connection.cursor()
         cur.execute(
             """INSERT INTO Users (username, userid,first_name,
-            last_name, password,creation_time) VALUES (?, ?, ?, ?, ?, ?)""",
+            last_name, password,creation_time,modification_time)
+              VALUES (?, ?, ?, ?, ?, ?,?)""",
             [
                 username,
                 get_indent(),
                 first_name,
                 last_name,
                 hashed_password,
+                time_now_utc(),
                 time_now_utc(),
             ],
         )
@@ -131,7 +133,7 @@ def get_user_comments(post_id: str):
 def get_principal(user_id: str):
     try:
         cur = sqlite.connection.cursor()
-        cur.execute("SELECT * from Users where id = (?)", [user_id])
+        cur.execute("SELECT * from Users where userid = (?)", [user_id])
         result = cur.fetchone()
     except sqlite3.Error as err:
         result = "Error - " + err.args[0]

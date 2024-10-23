@@ -7,9 +7,10 @@ CREATE TABLE [Users] (
   username VARCHAR,
   first_name VARCHAR,
   last_name VARCHAR,
-   userid VARCHAR,
+  userid VARCHAR,
   [password] VARCHAR,
   [creation_time] DATETIME,
+  [modification_time] DATETIME,
   education VARCHAR DEFAULT 'Unknown',
   employment VARCHAR DEFAULT 'Unknown',
   music VARCHAR DEFAULT 'Unknown',
@@ -54,13 +55,17 @@ INSERT INTO Users (
   userid,
   first_name,
   last_name,
-  [password]
+  [password],
+  creation_time,
+  modification_time
 )
 VALUES (
   'test',
   '259dcf8f-3036-47fc-b961-c3d237431584',
   'Jane',
   'Doe',
-  'password123',CURRENT_TIMESTAMP
+  'password123',
+  '13/01/2024',
+  '13/01/2024'
 
 );

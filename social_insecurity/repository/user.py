@@ -1,7 +1,7 @@
-from flask_login import UserMixin
+from flask_login import UserMixin  # noqa: I001
 from social_insecurity import sqlite, bcrypt
 import sqlite3
-import datetime
+from datetime import datetime
 import uuid
 
 
@@ -27,6 +27,18 @@ class User(UserMixin):
 
 def get_indent() -> str:
     return str(uuid.uuid4())
+
+
+def creation_time() -> str:
+    """
+    Get the current time in ISO 8601 format.
+
+    Returns
+    -------
+    str
+        The current time in ISO 8601 format.
+    """
+    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def time_now_utc() -> datetime:
@@ -58,7 +70,8 @@ def create_user(data: dict):
         sqlite.connection.commit()
         response = "Done - Rows affected: " + str(row_count)
     except sqlite3.Error as err:
-        response = "Error - " + err.args[0]
+        print("Error - " + err.args[0])
+        response = None
     finally:
         cur.close()
         return response
@@ -70,10 +83,11 @@ def get_user_by_username(username: str):
         cur.execute("SELECT * from Users where username = (?)", [username])
         result = cur.fetchone()
     except sqlite3.Error as err:
-        result = "Error - " + err.args[0]
+        print("Error - " + err.args[0])
+        result = None
     finally:
         cur.close()
-        return result
+        return User(result[0], result[1], result[2])
 
 
 def create_comment(post_id: int, user_id: int, data: str):
@@ -88,7 +102,27 @@ def create_comment(post_id: int, user_id: int, data: str):
         sqlite.connection.commit()
         response = "Done - Rows affected: " + str(row_count)
     except sqlite3.Error as err:
-        response = "Error - " + err.args[0]
+        print("Error - " + err.args[0])
+        response = None
+    finally:
+        cur.close()
+        return response
+
+
+def create_post(userid: str, data: str, image_name: str):
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """INSERT INTO Comments (u_id, content, image, creation_time) 
+            VALUES (?, ?,?,?)""",
+            [userid, data, image_name, time_now_utc()],
+        )
+        row_count = cur.rowcount
+        sqlite.connection.commit()
+        response = "Done - Rows affected: " + str(row_count)
+    except sqlite3.Error as err:
+        print("Error - " + err.args[0])
+        response = None
     finally:
         cur.close()
         return response
@@ -104,7 +138,8 @@ def get_post(post_id: int):
         )
         result = cur.fetchone()
     except sqlite3.Error as err:
-        result = "Error - " + err.args[0]
+        print("Error - " + err.args[0])
+        result = None
     finally:
         cur.close()
         return result
@@ -124,7 +159,30 @@ def get_user_comments(post_id: str):
         )
         result = cur.fetchall()
     except sqlite3.Error as err:
-        result = "Error - " + err.args[0]
+        print("Error - " + err.args[0])
+        result = None
+    finally:
+        cur.close()
+        return result
+
+
+def get_posts_by_userid(userid: str):
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """
+       SELECT p.*, u.*, (SELECT COUNT(*) FROM Comments WHERE p_id = p.id) AS cc
+          FROM Posts AS p JOIN Users AS u ON u.id = p.u_id
+          WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id =
+        (?) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = (?)) OR p.u_id=(?)
+    #     ORDER BY p.creation_time DESC;
+        """,
+            [userid, userid],
+        )
+        result = cur.fetchall()
+    except sqlite3.Error as err:
+        print("Error - " + err.args[0])
+        result = None
     finally:
         cur.close()
         return result
@@ -136,7 +194,8 @@ def get_principal(user_id: str):
         cur.execute("SELECT * from Users where userid = (?)", [user_id])
         result = cur.fetchone()
     except sqlite3.Error as err:
-        result = "Error - " + err.args[0]
+        print("Error - " + err.args[0])
+        result = None
     finally:
         cur.close()
         return result

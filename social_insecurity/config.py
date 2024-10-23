@@ -19,9 +19,8 @@ import os
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY") or "secret"
     SQLITE3_DATABASE_PATH = "sqlite3.db"
-    SQLALCHEMY_DATABASE_URI = "sqlite3.db"
     UPLOADS_FOLDER_PATH = "uploads"
     ALLOWED_EXTENSIONS = {}
     WTF_CSRF_ENABLED = True
-    PERMANENT_SESSION_LIFETIME = os.environ.get("PERMANENT_SESSION_LIFETIME")
+    PERMANENT_SESSION_LIFETIME = os.environ.get("PERMANENT_SESSION_LIFETIME") or 10000
     REMEMBER_COOKIE_DURATION = os.environ.get("REMEMBER_COOKIE_DURATION")

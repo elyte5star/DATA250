@@ -4,10 +4,10 @@ This file contains the routes for the application. It is imported by the social_
 It also contains the SQL queries used for communicating with the database.
 """
 
-from pathlib import Path
+from pathlib import Path  # noqa: I001
 
 from flask import current_app as app
-from flask import flash, redirect, render_template, send_from_directory, url_for
+from flask import flash,session, redirect, render_template, send_from_directory, url_for
 
 from social_insecurity import sqlite
 from social_insecurity.forms import (
@@ -17,6 +17,16 @@ from social_insecurity.forms import (
     PostForm,
     ProfileForm,
 )
+from social_insecurity.service.user import (
+    _login,
+    _create_user,
+    _get_user_posts,
+    _create_post,
+)
+
+# @app.before_request
+# def make_session_permanent():
+#     session.permanent = True
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -34,29 +44,18 @@ def index():
     register_form = index_form.register
 
     if login_form.validate_on_submit():
-        # get_user = f"""
-        #     SELECT *
-        #     FROM Users
-        #     WHERE username = '{login_form.username.data}';
-        #     """
-        # user = sqlite.query(get_user, one=True)
-
-        # if user is None:
-        #     flash("Sorry, this user does not exist!", category="warning")
-        # elif user["password"] != login_form.password.data:
-        #     flash("Sorry, wrong password!", category="warning")
-        # elif user["password"] == login_form.password.data:
-        #     return redirect(url_for("stream", username=login_form.username.data))
-
+        return _login(
+            login_form.username.data,
+            login_form.password.data,
+            login_form.remember_me.data,
+        )
     elif register_form.validate_on_submit():
-        # insert_user = f"""
-        #     INSERT INTO Users (username, first_name, last_name, password)
-        #     VALUES ('{register_form.username.data}', '{register_form.first_name.data}', '{register_form.last_name.data}', '{register_form.password.data}');
-        #     """
-        # sqlite.query(insert_user)
-        # flash("User successfully created!", category="success")
-        # return redirect(url_for("index"))
-
+        return _create_user(
+            register_form.username.data,
+            register_form.first_name.data,
+            register_form.last_name.data,
+            register_form.password.data,
+        )
     return render_template("index.html.j2", title="Welcome", form=index_form)
 
 
@@ -69,39 +68,24 @@ def stream(username: str):
     Otherwise, it reads the username from the URL and displays all posts from the user and their friends.
     """
     post_form = PostForm()
-    # get_user = f"""
-    #     SELECT *
-    #     FROM Users
-    #     WHERE username = '{username}';
-    #     """
-    # user = sqlite.query(get_user, one=True)
-
     if post_form.is_submitted():
-        # if post_form.image.data:
-        #     path = (
-        #         Path(app.instance_path)
-        #         / app.config["UPLOADS_FOLDER_PATH"]
-        #         / post_form.image.data.filename
-        #     )
-        #     post_form.image.data.save(path)
-
-        # insert_post = f"""
-        #     INSERT INTO Posts (u_id, content, image, creation_time)
-        #     VALUES ({user["id"]}, '{post_form.content.data}', '{post_form.image.data.filename}', CURRENT_TIMESTAMP);
-        #     """
-        # sqlite.query(insert_post)
-        # return redirect(url_for("stream", username=username))
-
-    # get_posts = f"""
-    #      SELECT p.*, u.*, (SELECT COUNT(*) FROM Comments WHERE p_id = p.id) AS cc
-    #      FROM Posts AS p JOIN Users AS u ON u.id = p.u_id
-    #      WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id = {user["id"]}) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = {user["id"]}) OR p.u_id = {user["id"]}
-    #      ORDER BY p.creation_time DESC;
-    #     """
-    # posts = sqlite.query(get_posts)
-    # return render_template(
-    #     "stream.html.j2", title="Stream", username=username, form=post_form, posts=posts
-    # )
+        if post_form.image.data:
+            path = (
+                Path(app.instance_path)
+                / app.config["UPLOADS_FOLDER_PATH"]
+                / post_form.image.data.filename
+            )
+            post_form.image.data.save(path)
+        return _create_post(
+            username, post_form.content.data, post_form.image.data.filename
+        )
+    return render_template(
+        "stream.html.j2",
+        title="Stream",
+        username=username,
+        form=post_form,
+        posts=_get_user_posts(username),
+    )
 
 
 @app.route("/comments/<string:username>/<int:post_id>", methods=["GET", "POST"])

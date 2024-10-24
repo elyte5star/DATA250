@@ -6,14 +6,19 @@ from social_insecurity.repository.user import (
     create_user,
     get_posts_by_userid,
     create_post,
+    time_now_utc,
+    get_indent,
 )
 from flask import flash, redirect, url_for, render_template
-from flask_login import login_required, login_user, logout_user, current_user
+from flask_login import login_user, current_user
 
 
 @login_manager.user_loader
 def load_user(user_id):
     user = get_principal(user_id)
+    if user is None:
+        return None
+    print("Hey this is what we got ",user)
     return User(user[0], user[1], user[2]) if user is not None else None
 
 
@@ -33,9 +38,12 @@ def _login(username: str, password: str, remember_me):
 def _create_user(username: str, first_name: str, lastname: str, password):
     data = {
         "username": username,
+        "userid": get_indent(),
         "first_name": first_name,
         "last_name": lastname,
-        "password": password,
+        "password": bcrypt.generate_password_hash(password, 12).decode(),
+        "creation_time": time_now_utc(),
+        "modification_time": time_now_utc(),
     }
     response = create_user(data)
     if response is not None:

@@ -15,7 +15,6 @@ from flask_wtf.csrf import CSRFProtect  # type: ignore
 from social_insecurity.config import Config
 from social_insecurity.database import SQLite3
 
-
 sqlite = SQLite3()
 login_manager = LoginManager()
 login_manager.session_protection = "strong"

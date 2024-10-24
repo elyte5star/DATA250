@@ -3,20 +3,22 @@
 -- --
 
 CREATE TABLE [Users] (
-  id INTEGER PRIMARY KEY,
-  username VARCHAR,
-  first_name VARCHAR,
-  last_name VARCHAR,
-  userid VARCHAR,
-  [password] VARCHAR,
-  [creation_time] DATETIME,
-  [modification_time] DATETIME,
+  id INTEGER NOT NULL,
+  userid VARCHAR(60) NOT NULL,
+  username VARCHAR(60) NOT NULL,
+  first_name VARCHAR(60) NOT NULL,
+  last_name VARCHAR(60) NOT NULL,
+  [password] VARCHAR(255) NOT NULL,
+  [creation_time] DATETIME NOT NULL,
+  [modification_time] DATETIME NOT NULL,
   education VARCHAR DEFAULT 'Unknown',
   employment VARCHAR DEFAULT 'Unknown',
   music VARCHAR DEFAULT 'Unknown',
   movie VARCHAR DEFAULT 'Unknown',
   nationality VARCHAR DEFAULT 'Unknown',
-  birthday DATE DEFAULT 'Unknown'
+  birthday DATE DEFAULT 'Unknown',
+  PRIMARY KEY(id,userid)
+  
 );
 
 CREATE TABLE [Posts](
@@ -25,15 +27,15 @@ CREATE TABLE [Posts](
   content INTEGER,
   [image] VARCHAR,
   [creation_time] DATETIME,
-  FOREIGN KEY (u_id) REFERENCES [Users](id)
+  FOREIGN KEY (u_id) REFERENCES [Users](userid)
 );
 
 CREATE TABLE [Friends](
   u_id INTEGER NOT NULL REFERENCES Users,
   f_id INTEGER NOT NULL REFERENCES Users,
   PRIMARY KEY(u_id, f_id),
-  FOREIGN KEY (u_id) REFERENCES [Users](id),
-  FOREIGN KEY (f_id) REFERENCES [Users](id)
+  FOREIGN KEY (u_id) REFERENCES [Users](userid),
+  FOREIGN KEY (f_id) REFERENCES [Users](userid)
 );
 
 CREATE TABLE [Comments](
@@ -43,7 +45,7 @@ CREATE TABLE [Comments](
   comment VARCHAR,
   [creation_time] DATETIME,
   FOREIGN KEY (p_id) REFERENCES Posts(id),
-  FOREIGN KEY (u_id) REFERENCES Users(id)
+  FOREIGN KEY (u_id) REFERENCES Users(userid)
 );
 
 -- --
@@ -51,6 +53,7 @@ CREATE TABLE [Comments](
 -- --
 
 INSERT INTO Users (
+  id,
   username,
   userid,
   first_name,
@@ -60,6 +63,7 @@ INSERT INTO Users (
   modification_time
 )
 VALUES (
+  "219dcf8f-3036-47fc-b961-c3d237431582",
   'test',
   '259dcf8f-3036-47fc-b961-c3d237431584',
   'Jane',

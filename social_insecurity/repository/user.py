@@ -24,6 +24,9 @@ class User(UserMixin):
     def get_id(self):
         return self.userid
 
+    def get_username(self):
+        return self.username
+
 
 def get_indent() -> str:
     return str(uuid.uuid4())
@@ -46,10 +49,6 @@ def time_now_utc() -> datetime:
 
 
 def create_user(data: dict):
-    username = data["username"]
-    hashed_password = bcrypt.generate_password_hash(data["password"], 12).decode()
-    first_name = data["first_name"]
-    last_name = data["last_name"]
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
@@ -57,13 +56,13 @@ def create_user(data: dict):
             last_name, password,creation_time,modification_time)
               VALUES (?, ?, ?, ?, ?, ?,?)""",
             [
-                username,
-                get_indent(),
-                first_name,
-                last_name,
-                hashed_password,
-                time_now_utc(),
-                time_now_utc(),
+                data["username"],
+                data["userid"],
+                data["first_name"],
+                data["last_name"],
+                data["password"],
+                data["creation_time"],
+                data["modification_time"],
             ],
         )
         row_count = cur.rowcount
@@ -83,7 +82,7 @@ def get_user_by_username(username: str):
         cur.execute("SELECT * from Users where username = (?)", [username])
         result = cur.fetchone()
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        print("Error getting  - " + err.args[0])
         result = None
     finally:
         cur.close()
@@ -175,7 +174,7 @@ def get_posts_by_userid(userid: str):
           FROM Posts AS p JOIN Users AS u ON u.id = p.u_id
           WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id =
         (?) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = (?)) OR p.u_id=(?)
-    #     ORDER BY p.creation_time DESC;
+       ORDER BY p.creation_time DESC;
         """,
             [userid, userid],
         )

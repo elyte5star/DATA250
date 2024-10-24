@@ -31,7 +31,6 @@ from wtforms import (
     validators,
 )
 
-
 # Defines all forms in the application, these will be instantiated by the template,
 # and the routes.py will read the values of the fields
 

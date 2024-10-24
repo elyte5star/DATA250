@@ -7,8 +7,14 @@ It also contains the SQL queries used for communicating with the database.
 from pathlib import Path  # noqa: I001
 
 from flask import current_app as app
-from flask import flash,session, redirect, render_template, send_from_directory, url_for
-
+from flask import (
+    flash,
+    redirect,
+    render_template,
+    send_from_directory,
+    url_for,
+)
+from flask_login import login_required, current_user
 from social_insecurity import sqlite
 from social_insecurity.forms import (
     CommentsForm,
@@ -33,12 +39,13 @@ from social_insecurity.service.user import (
 @app.route("/index", methods=["GET", "POST"])
 def index():
     """Provides the index page for the application.
-
     It reads the composite IndexForm and based on which form was submitted,
     it either logs the user in or registers a new user.
-
     If no form was submitted, it simply renders the index page.
     """
+    if current_user.is_authenticated:
+        return redirect(url_for("stream", username=current_user.get_username()))
+
     index_form = IndexForm()
     login_form = index_form.login
     register_form = index_form.register
@@ -60,11 +67,10 @@ def index():
 
 
 @app.route("/stream/<string:username>", methods=["GET", "POST"])
+@login_required
 def stream(username: str):
     """Provides the stream page for the application.
-
     If a form was submitted, it reads the form data and inserts a new post into the database.
-
     Otherwise, it reads the username from the URL and displays all posts from the user and their friends.
     """
     post_form = PostForm()
@@ -89,6 +95,7 @@ def stream(username: str):
 
 
 @app.route("/comments/<string:username>/<int:post_id>", methods=["GET", "POST"])
+@login_required
 def comments(username: str, post_id: int):
     """Provides the comments page for the application.
 
@@ -135,6 +142,7 @@ def comments(username: str, post_id: int):
 
 
 @app.route("/friends/<string:username>", methods=["GET", "POST"])
+@login_required
 def friends(username: str):
     """Provides the friends page for the application.
 
@@ -194,6 +202,7 @@ def friends(username: str):
 
 
 @app.route("/profile/<string:username>", methods=["GET", "POST"])
+@login_required
 def profile(username: str):
     """Provides the profile page for the application.
 
@@ -230,6 +239,7 @@ def profile(username: str):
 
 
 @app.route("/uploads/<string:filename>")
+@login_required
 def uploads(filename):
     """Provides an endpoint for serving uploaded files."""
     return send_from_directory(

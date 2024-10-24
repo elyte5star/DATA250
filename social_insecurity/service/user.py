@@ -8,66 +8,102 @@ from social_insecurity.repository.user import (
     create_post,
     time_now_utc,
     get_indent,
+    create_comment,
+    get_user_comments,
+    get_post,
 )
-from flask import flash, redirect, url_for, render_template
-from flask_login import login_user, current_user
+from flask import flash, abort, redirect, url_for
+from flask_login import login_user
+from typing import Union
 
 
 @login_manager.user_loader
-def load_user(user_id):
+def load_user(user_id) -> Union[User, None]:
     user = get_principal(user_id)
     if user is None:
         return None
-    print("Hey this is what we got ",user)
-    return User(user[0], user[1], user[2]) if user is not None else None
-
-
-def find_user_by_username(username: str):
-    user = get_user_by_username(username)
+    elif "Error" not in user:
+        return None
     return User(user[0], user[1], user[2])
 
 
-def _login(username: str, password: str, remember_me):
+@login_manager.unauthorized_handler
+def unauthorized():
+    # do stuff
+    return "failed login"
+
+
+def find_user_by_username(username: str) -> User:
     user = get_user_by_username(username)
-    if len(user) > 0 and bcrypt.check_password_hash(user.password, password):
-        login_user(user, remember_me=remember_me)
-        return redirect(url_for("stream", username=user.username))
+    if "Error" not in user and user is not None:
+        return User(user[1], user[2], user[5])
+    return None
+
+
+def _login(username: str, password: str, remember_me):
+    user = find_user_by_username(username)
+    if user is not None:
+        if bcrypt.check_password_hash(user.password, password):
+            flash("you were just logged in!", category="success")
+            login_user(user, remember=remember_me)
+            return redirect(url_for("stream", username=user.username))
     flash("Invalid username/password!", category="warning")
+    abort(404, "Invalid username/password!")
 
 
 def _create_user(username: str, first_name: str, lastname: str, password):
-    data = {
-        "username": username,
-        "userid": get_indent(),
-        "first_name": first_name,
-        "last_name": lastname,
-        "password": bcrypt.generate_password_hash(password, 12).decode(),
-        "creation_time": time_now_utc(),
-        "modification_time": time_now_utc(),
-    }
-    response = create_user(data)
-    if response is not None:
-        flash("User successfully created!", category="success")
+    hashed_password = bcrypt.generate_password_hash(password)
+    user_info = (
+        get_indent(),
+        username,
+        first_name,
+        lastname,
+        get_indent(),
+        hashed_password,
+        time_now_utc(),
+        time_now_utc(),
+    )
+    response = create_user(user_info)
+    if "Error" in response:
+        message = "Operation unsuccessful!!"
+        if "Error - UNIQUE" in response:
+            message = "User already exist!"
+        flash(message, category="warning")
         return redirect(url_for("index"))
-    flash("Operation unsuccessful!", category="warning")
+    flash("User successfully created!", category="success")
+    return redirect(url_for("index"))
 
 
 def _create_post(username: str, data: str, image_name: str):
     user = find_user_by_username(username)
-    if user is not None:
-        response = create_post(user.id, data, image_name)
-        if response is not None:
+    if "Error" not in user:
+        payload = (user.get_id, data, image_name, time_now_utc())
+        response = create_post(payload)
+        if "Error" not in response:
             flash("User successfully created!", category="success")
             return redirect(url_for("stream", username=username))
     flash("Operation unsuccessful!", category="warning")
 
 
-def _create_comment():
-    pass
+def _create_comment(username: str, post_id: int, data: str):
+    user = find_user_by_username(username)
+    if user is not None:
+        comment_info = (post_id, user.get_id, data, time_now_utc())
+        create_comment(comment_info)
 
 
-def get_user_comments():
-    pass
+def _get_user_comments(post_id: int):
+    comments = get_user_comments(post_id)
+    if "Error" not in comments:
+        return comments
+    flash("Operation unsuccessful!", category="warning")
+
+
+def _get_user_post(post_id: int):
+    post = get_post(post_id)
+    if "Error" not in post:
+        return post
+    abort(404, f"Post with {post_id} is not found!")
 
 
 def _get_user_posts(username: str):
@@ -76,6 +112,7 @@ def _get_user_posts(username: str):
         posts = get_posts_by_userid(user.id)
         return posts
     flash("Operation unsuccessful!", category="warning")
+    abort(404, "Operation unsuccessful!")
 
 
 def create_user_friend():

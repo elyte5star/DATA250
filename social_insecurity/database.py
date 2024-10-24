@@ -98,7 +98,7 @@ class SQLite3:
         if conn is None:
             conn = g.flask_sqlite3_connection = sqlite3.connect(
                 self._path,
-                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+            
             )
             conn.row_factory = sqlite3.Row
         return conn

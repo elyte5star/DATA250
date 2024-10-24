@@ -3,9 +3,9 @@
 -- --
 
 CREATE TABLE [Users] (
-  id INTEGER NOT NULL,
-  userid VARCHAR(60) NOT NULL,
-  username VARCHAR(60) NOT NULL,
+  id INTEGER NOT NULL UNIQUE,
+  userid VARCHAR(60) NOT NULL UNIQUE,
+  username VARCHAR(60) NOT NULL UNIQUE,
   first_name VARCHAR(60) NOT NULL,
   last_name VARCHAR(60) NOT NULL,
   [password] VARCHAR(255) NOT NULL,

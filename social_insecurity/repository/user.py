@@ -3,6 +3,7 @@ from social_insecurity import sqlite, bcrypt
 import sqlite3
 from datetime import datetime
 import uuid
+from typing import Union
 
 
 class User(UserMixin):
@@ -22,10 +23,13 @@ class User(UserMixin):
         return self.authenticated
 
     def get_id(self):
-        return self.userid
+        return self.id
 
     def get_username(self):
         return self.username
+
+    def __repr__(self):
+        return "<User {}>".format(self.username)
 
 
 def get_indent() -> str:
@@ -48,86 +52,71 @@ def time_now_utc() -> datetime:
     return datetime.now()
 
 
-def create_user(data: dict):
+def create_user(data: tuple) -> Union[str, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
-            """INSERT INTO Users (username, userid,first_name,
-            last_name, password,creation_time,modification_time)
-              VALUES (?, ?, ?, ?, ?, ?,?)""",
-            [
-                data["username"],
-                data["userid"],
-                data["first_name"],
-                data["last_name"],
-                data["password"],
-                data["creation_time"],
-                data["modification_time"],
-            ],
+            """INSERT INTO Users (id,username,first_name,
+            last_name, userid, password,creation_time,modification_time)
+              VALUES (?, ?, ?, ?, ?, ?,? ,?)""",
+            data,
         )
-        row_count = cur.rowcount
         sqlite.connection.commit()
-        response = "Done - Rows affected: " + str(row_count)
+        return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
-        response = None
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return response
 
 
-def get_user_by_username(username: str):
+def get_user_by_username(username: str) -> Union[tuple, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute("SELECT * from Users where username = (?)", [username])
-        result = cur.fetchone()
+        return cur.fetchone()
     except sqlite3.Error as err:
         print("Error getting  - " + err.args[0])
-        result = None
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return User(result[0], result[1], result[2])
 
 
-def create_comment(post_id: int, user_id: int, data: str):
+def create_comment(comment_info: tuple) -> Union[str, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
             """INSERT INTO Comments (p_id, u_id, comment,
             creation_time) VALUES (?, ?,?,?)""",
-            [post_id, user_id, data, time_now_utc()],
+            comment_info,
         )
-        row_count = cur.rowcount
         sqlite.connection.commit()
-        response = "Done - Rows affected: " + str(row_count)
+        return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
-        response = None
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return response
 
 
-def create_post(userid: str, data: str, image_name: str):
+def create_post(post_info: tuple) -> Union[tuple, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
             """INSERT INTO Comments (u_id, content, image, creation_time) 
             VALUES (?, ?,?,?)""",
-            [userid, data, image_name, time_now_utc()],
+            post_info,
         )
-        row_count = cur.rowcount
         sqlite.connection.commit()
-        response = "Done - Rows affected: " + str(row_count)
+        return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
-        response = None
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return response
 
 
-def get_post(post_id: int):
+def get_post(post_id: int) -> Union[tuple, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
@@ -135,16 +124,15 @@ def get_post(post_id: int):
             u.id  WHERE p.id = (?)""",
             [post_id],
         )
-        result = cur.fetchone()
+        return cur.fetchone()
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
-        result = None
+        print("Error getting  - " + err.args[0])
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return result
 
 
-def get_user_comments(post_id: str):
+def get_user_comments(post_id: str) -> Union[list, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
@@ -156,16 +144,15 @@ def get_user_comments(post_id: str):
         """,
             [post_id],
         )
-        result = cur.fetchall()
+        return cur.fetchall()
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
-        result = None
+        print("Error getting  - " + err.args[0])
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return result
 
 
-def get_posts_by_userid(userid: str):
+def get_posts_by_userid(userid: str) -> Union[list, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
@@ -178,26 +165,24 @@ def get_posts_by_userid(userid: str):
         """,
             [userid, userid],
         )
-        result = cur.fetchall()
+        return cur.fetchall()
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
-        result = None
+        print("Error getting  - " + err.args[0])
+        return "Error - " + err.args[0]
     finally:
         cur.close()
-        return result
 
 
-def get_principal(user_id: str):
+def get_principal(user_id: str) -> Union[tuple, None, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute("SELECT * from Users where userid = (?)", [user_id])
-        result = cur.fetchone()
+        return cur.fetchone()
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
-        result = None
+        return None
     finally:
         cur.close()
-        return result
 
 
 def create_user_friend():

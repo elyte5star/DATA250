@@ -28,6 +28,9 @@ from social_insecurity.service.user import (
     _create_user,
     _get_user_posts,
     _create_post,
+    _create_comment,
+    _get_user_post,
+    _get_user_comments,
 )
 
 # @app.before_request
@@ -104,40 +107,15 @@ def comments(username: str, post_id: int):
     Otherwise, it reads the username and post id from the URL and displays all comments for the post.
     """
     comments_form = CommentsForm()
-    get_user = f"""
-        SELECT *
-        FROM Users
-        WHERE username = '{username}';
-        """
-    user = sqlite.query(get_user, one=True)
-
     if comments_form.is_submitted():
-        insert_comment = f"""
-            INSERT INTO Comments (p_id, u_id, comment, creation_time)
-            VALUES ({post_id}, {user["id"]}, '{comments_form.comment.data}', CURRENT_TIMESTAMP);
-            """
-        sqlite.query(insert_comment)
-
-    get_post = f"""
-        SELECT *
-        FROM Posts AS p JOIN Users AS u ON p.u_id = u.id
-        WHERE p.id = {post_id};
-        """
-    get_comments = f"""
-        SELECT DISTINCT *
-        FROM Comments AS c JOIN Users AS u ON c.u_id = u.id
-        WHERE c.p_id={post_id}
-        ORDER BY c.creation_time DESC;
-        """
-    post = sqlite.query(get_post, one=True)
-    comments = sqlite.query(get_comments)
+        return _create_comment(username, post_id, comments_form.comment.data)
     return render_template(
         "comments.html.j2",
         title="Comments",
         username=username,
         form=comments_form,
-        post=post,
-        comments=comments,
+        post=_get_user_post(post_id),
+        comments=_get_user_comments(post_id),
     )
 
 

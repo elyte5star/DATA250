@@ -1,8 +1,6 @@
 from flask_login import UserMixin  # noqa: I001
-from social_insecurity import sqlite, bcrypt
+from social_insecurity import sqlite
 import sqlite3
-from datetime import datetime
-import uuid
 from typing import Union
 
 
@@ -30,26 +28,6 @@ class User(UserMixin):
 
     def __repr__(self):
         return "<User {}>".format(self.username)
-
-
-def get_indent() -> str:
-    return str(uuid.uuid4())
-
-
-def creation_time() -> str:
-    """
-    Get the current time in ISO 8601 format.
-
-    Returns
-    -------
-    str
-        The current time in ISO 8601 format.
-    """
-    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-
-
-def time_now_utc() -> datetime:
-    return datetime.now()
 
 
 def create_user(data: tuple) -> Union[str, Exception]:
@@ -99,7 +77,7 @@ def create_comment(comment_info: tuple) -> Union[str, Exception]:
         cur.close()
 
 
-def create_post(post_info: tuple) -> Union[tuple, Exception]:
+def create_post(post_info: tuple) -> Union[str, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
@@ -173,10 +151,10 @@ def get_posts_by_userid(userid: str) -> Union[list, Exception]:
         cur.close()
 
 
-def get_principal(user_id: str) -> Union[tuple, None, Exception]:
+def get_principal(userid: str) -> Union[tuple, None, Exception]:
     try:
         cur = sqlite.connection.cursor()
-        cur.execute("SELECT * from Users where userid = (?)", [user_id])
+        cur.execute("SELECT * from Users where userid = (?)", [userid])
         return cur.fetchone()
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
@@ -185,13 +163,60 @@ def get_principal(user_id: str) -> Union[tuple, None, Exception]:
         cur.close()
 
 
-def create_user_friend():
-    pass
+def create_user_friend(data: tuple) -> Union[str, Exception]:
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """
+                INSERT INTO Friends (u_id, f_id)
+                VALUES (?, ?)
+                """,
+            data,
+        )
+        sqlite.connection.commit()
+        return "Done - Row ID: " + str(cur.lastrowid)
+    except sqlite3.Error as err:
+        print("Error - " + err.args[0])
+        return "Error - " + err.args[0]
+    finally:
+        cur.close()
 
 
-def get_user_friends():
-    pass
+def get_user_friends(userid: str) -> Union[list, Exception]:
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute("SELECT f_id FROM Friends WHERE u_id = (?)", [userid])
+        return cur.fetchall()
+    except sqlite3.Error as err:
+        print("Error getting  - " + err.args[0])
+        return "Error - " + err.args[0]
+    finally:
+        cur.close()
 
 
 def upload_file():
     pass
+
+
+def update_user_profile(data: tuple) -> Union[str, Exception]:
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """
+               UPDATE Users
+            SET education=(?), employment=(?),
+                music=(?), movie=(?),
+                nationality=(?), birthday=(?),
+                modification_time=(?),
+                modified_by=(?),
+            WHERE username=?;
+                """,
+            data,
+        )
+        sqlite.connection.commit()
+        return "Done - Row Affected: " + str(cur.rowcount)
+    except sqlite3.Error as err:
+        print("Error - " + err.args[0])
+        return "Error - " + err.args[0]
+    finally:
+        cur.close()

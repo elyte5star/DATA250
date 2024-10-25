@@ -11,11 +11,12 @@ CREATE TABLE [Users] (
   [password] VARCHAR(255) NOT NULL,
   [creation_time] DATETIME NOT NULL,
   [modification_time] DATETIME NOT NULL,
-  education VARCHAR DEFAULT 'Unknown',
-  employment VARCHAR DEFAULT 'Unknown',
-  music VARCHAR DEFAULT 'Unknown',
-  movie VARCHAR DEFAULT 'Unknown',
-  nationality VARCHAR DEFAULT 'Unknown',
+  modified_by VARCHAR(60) NOT NULL DEFAULT 'NewAccount',
+  education VARCHAR(30) DEFAULT 'Unknown',
+  employment VARCHAR(30) DEFAULT 'Unknown',
+  music VARCHAR(30) DEFAULT 'Unknown',
+  movie VARCHAR(30) DEFAULT 'Unknown',
+  nationality VARCHAR(30) DEFAULT 'Unknown',
   birthday DATE DEFAULT 'Unknown',
   PRIMARY KEY(id,userid)
   
@@ -23,7 +24,7 @@ CREATE TABLE [Users] (
 
 CREATE TABLE [Posts](
   id INTEGER PRIMARY KEY,
-  u_id INTEGER,
+  u_id VARCHAR(60),
   content INTEGER,
   [image] VARCHAR,
   [creation_time] DATETIME,
@@ -31,7 +32,7 @@ CREATE TABLE [Posts](
 );
 
 CREATE TABLE [Friends](
-  u_id INTEGER NOT NULL REFERENCES Users,
+  u_id VARCHAR(60) NOT NULL REFERENCES Users,
   f_id INTEGER NOT NULL REFERENCES Users,
   PRIMARY KEY(u_id, f_id),
   FOREIGN KEY (u_id) REFERENCES [Users](userid),
@@ -41,8 +42,8 @@ CREATE TABLE [Friends](
 CREATE TABLE [Comments](
   id INTEGER PRIMARY KEY,
   p_id INTEGER,
-  u_id INTEGER,
-  comment VARCHAR,
+  u_id VARCHAR(60),
+  comment VARCHAR(300),
   [creation_time] DATETIME,
   FOREIGN KEY (p_id) REFERENCES Posts(id),
   FOREIGN KEY (u_id) REFERENCES Users(userid)
@@ -52,24 +53,26 @@ CREATE TABLE [Comments](
 -- Populate tables with test data
 -- --
 
-INSERT INTO Users (
-  id,
-  username,
-  userid,
-  first_name,
-  last_name,
-  [password],
-  creation_time,
-  modification_time
-)
-VALUES (
-  "219dcf8f-3036-47fc-b961-c3d237431582",
-  'test',
-  '259dcf8f-3036-47fc-b961-c3d237431584',
-  'Jane',
-  'Doe',
-  'password123',
-  '13/01/2024',
-  '13/01/2024'
+-- INSERT INTO Users (
+--   id,
+--   username,
+--   userid,
+--   first_name,
+--   last_name,
+--   [password],
+--   creation_time,
+--   modification_time,
+--   modified_by  
+-- )
+-- VALUES (
+--   "219dcf8f-3036-47fc-b961-c3d237431582",
+--   'test',
+--   '259dcf8f-3036-47fc-b961-c3d237431584',
+--   'Jane',
+--   'Doe',
+--   'password123',
+--   '13/01/2024',
+--   '13/01/2024'
+--   'test'
 
-);
+-- );

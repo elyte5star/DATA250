@@ -34,10 +34,6 @@ from wtforms import (
 # Defines all forms in the application, these will be instantiated by the template,
 # and the routes.py will read the values of the fields
 
-# TODO: Add validation, maybe use wtforms.validators??
-
-# TODO: There was some important security feature that wtforms provides, but I don't remember what; implement it
-
 
 class LoginForm(FlaskForm):
     """Provides the login form for the application."""
@@ -52,9 +48,7 @@ class LoginForm(FlaskForm):
         render_kw={"placeholder": "Password"},
         validators=[validators.DataRequired()],
     )
-    remember_me = BooleanField(
-        label="Remember me"
-    )  # TODO: It would be nice to have this feature implemented, probably by using cookies
+    remember_me = BooleanField(label="Remember me")
     submit = SubmitField(label="Sign In")
 
 
@@ -64,29 +58,31 @@ class RegisterForm(FlaskForm):
     first_name = StringField(
         label="First Name",
         render_kw={"placeholder": "First Name"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter your name")],
     )
     last_name = StringField(
         label="Last Name",
         render_kw={"placeholder": "Last Name"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter your surname")],
     )
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
-        validators=[validators.Length(min=4, max=25)],
+        validators=[
+            validators.Length(min=4, max=25, message=("Username must be within 4-25"))
+        ],
     )
     password = PasswordField(
         label="Password",
         render_kw={"placeholder": "Password"},
         validators=[
-            validators.Length(min=8, max=35),
-            validators.EqualTo("confirm", message="Passwords must match"),
+            validators.Length(min=8, max=35, message=("Username must be within 8-35")),
         ],
     )
     confirm = PasswordField(
         label="Confirm Password",
         render_kw={"placeholder": "Confirm Password"},
+        validators=[validators.EqualTo("password", message="Passwords must match")],
     )
     submit = SubmitField(label="Sign Up")
 
@@ -99,7 +95,11 @@ class IndexForm(FlaskForm):
 class PostForm(FlaskForm):
     """Provides the post form for the application."""
 
-    content = TextAreaField(label="New Post", render_kw={"placeholder": "What are you thinking about?"})
+    content = TextAreaField(
+        label="New Post",
+        render_kw={"placeholder": "What are you thinking about?"},
+        validators=[validators.InputRequired(), validators.Length(max=200)],
+    )
     image = FileField(label="Image")
     submit = SubmitField(label="Post")
 
@@ -110,7 +110,7 @@ class CommentsForm(FlaskForm):
     comment = TextAreaField(
         label="New Comment",
         render_kw={"placeholder": "What do you have to say?"},
-        validators=[validators.DataRequired()],
+        validators=[validators.InputRequired(), validators.Length(max=200)],
     )
     submit = SubmitField(label="Comment")
 
@@ -154,5 +154,7 @@ class ProfileForm(FlaskForm):
         render_kw={"placeholder": "Your nationality"},
         validators=[validators.DataRequired()],
     )
-    birthday = DateField(label="Birthday", default=datetime.now(), validators=[validators.DataRequired()])
+    birthday = DateField(
+        label="Your Birthday", validators=[validators.DataRequired()]
+    )
     submit = SubmitField(label="Update Profile")

@@ -8,7 +8,6 @@ from pathlib import Path  # noqa: I001
 
 from flask import current_app as app
 from flask import (
-    flash,
     redirect,
     render_template,
     send_from_directory,
@@ -31,6 +30,10 @@ from social_insecurity.service.user import (
     _create_comment,
     _get_user_post,
     _get_user_comments,
+    _create_user_friend,
+    _get_user_friends,
+    _update_user_profile,
+    _get_user,
 )
 
 # @app.before_request
@@ -101,10 +104,10 @@ def stream(username: str):
 @login_required
 def comments(username: str, post_id: int):
     """Provides the comments page for the application.
-
-    If a form was submitted, it reads the form data and inserts a new comment into the database.
-
-    Otherwise, it reads the username and post id from the URL and displays all comments for the post.
+    If a form was submitted, it reads the form data
+    and inserts a new comment into the database.
+    Otherwise, it reads the username
+    and post id from the URL and displays all comments for the post.
     """
     comments_form = CommentsForm()
     if comments_form.is_submitted():
@@ -123,53 +126,16 @@ def comments(username: str, post_id: int):
 @login_required
 def friends(username: str):
     """Provides the friends page for the application.
-
-    If a form was submitted, it reads the form data and inserts a new friend into the database.
-
-    Otherwise, it reads the username from the URL and displays all friends of the user.
+    If a form was submitted, it reads the form data
+    and inserts a new friend into the database.
+    Otherwise, it reads the username from the URL
+    and displays all friends of the user.
     """
     friends_form = FriendsForm()
-    get_user = f"""
-        SELECT *
-        FROM Users
-        WHERE username = '{username}';
-        """
-    user = sqlite.query(get_user, one=True)
-
     if friends_form.is_submitted():
-        get_friend = f"""
-            SELECT *
-            FROM Users
-            WHERE username = '{friends_form.username.data}';
-            """
-        friend = sqlite.query(get_friend, one=True)
-        get_friends = f"""
-            SELECT f_id
-            FROM Friends
-            WHERE u_id = {user["id"]};
-            """
-        friends = sqlite.query(get_friends)
+        _create_user_friend(current_user, friends_form.username.data)
 
-        if friend is None:
-            flash("User does not exist!", category="warning")
-        elif friend["id"] == user["id"]:
-            flash("You cannot be friends with yourself!", category="warning")
-        elif friend["id"] in [friend["f_id"] for friend in friends]:
-            flash("You are already friends with this user!", category="warning")
-        else:
-            insert_friend = f"""
-                INSERT INTO Friends (u_id, f_id)
-                VALUES ({user["id"]}, {friend["id"]});
-                """
-            sqlite.query(insert_friend)
-            flash("Friend successfully added!", category="success")
-
-    get_friends = f"""
-        SELECT *
-        FROM Friends AS f JOIN Users as u ON f.f_id = u.id
-        WHERE f.u_id = {user["id"]} AND f.f_id != {user["id"]};
-        """
-    friends = sqlite.query(get_friends)
+    friends = _get_user_friends(current_user.get_id())
     return render_template(
         "friends.html.j2",
         title="Friends",
@@ -183,35 +149,27 @@ def friends(username: str):
 @login_required
 def profile(username: str):
     """Provides the profile page for the application.
-
-    If a form was submitted, it reads the form data and updates the user's profile in the database.
-
-    Otherwise, it reads the username from the URL and displays the user's profile.
+    If a form was submitted, it reads the form data
+    and updates the user's profile in the database.
+    Otherwise, it reads the username from the URL
+    and displays the user's profile.
     """
     profile_form = ProfileForm()
-    get_user = f"""
-        SELECT *
-        FROM Users
-        WHERE username = '{username}';
-        """
-    user = sqlite.query(get_user, one=True)
-
     if profile_form.is_submitted():
-        update_profile = f"""
-            UPDATE Users
-            SET education='{profile_form.education.data}', employment='{profile_form.employment.data}',
-                music='{profile_form.music.data}', movie='{profile_form.movie.data}',
-                nationality='{profile_form.nationality.data}', birthday='{profile_form.birthday.data}'
-            WHERE username='{username}';
-            """
-        sqlite.query(update_profile)
-        return redirect(url_for("profile", username=username))
-
+        return _update_user_profile(
+            profile_form.education.data,
+            profile_form.employment.data,
+            profile_form.music.data,
+            profile_form.movie.data,
+            profile_form.nationality.data,
+            profile_form.birthday.data,
+            current_user,
+        )
     return render_template(
         "profile.html.j2",
         title="Profile",
         username=username,
-        user=user,
+        user=_get_user(username),
         form=profile_form,
     )
 

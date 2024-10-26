@@ -41,15 +41,15 @@ class LoginForm(FlaskForm):
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message=("Username must be within 4-25"))],
     )
     password = PasswordField(
         label="Password",
         render_kw={"placeholder": "Password"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message=("Password must be within 8-35"))],
     )
     remember_me = BooleanField(label="Remember me")
-    submit = SubmitField(label="Sign In")
+    submit1 = SubmitField(label="Sign In")
 
 
 class RegisterForm(FlaskForm):
@@ -76,7 +76,7 @@ class RegisterForm(FlaskForm):
         label="Password",
         render_kw={"placeholder": "Password"},
         validators=[
-            validators.Length(min=8, max=35, message=("Username must be within 8-35")),
+            validators.Length(min=8, max=35, message=("Password must be within 8-35")),
         ],
     )
     confirm = PasswordField(
@@ -84,7 +84,7 @@ class RegisterForm(FlaskForm):
         render_kw={"placeholder": "Confirm Password"},
         validators=[validators.EqualTo("password", message="Passwords must match")],
     )
-    submit = SubmitField(label="Sign Up")
+    submit2 = SubmitField(label="Sign Up")
 
 
 class IndexForm(FlaskForm):

@@ -56,13 +56,13 @@ def index():
     login_form = index_form.login
     register_form = index_form.register
 
-    if login_form.validate_on_submit():
+    if login_form.submit1.data and login_form.validate_on_submit():
         return _login(
             login_form.username.data,
             login_form.password.data,
             login_form.remember_me.data,
         )
-    elif register_form.validate_on_submit():
+    elif register_form.submit2.data and register_form.validate_on_submit():
         return _create_user(
             register_form.username.data,
             register_form.first_name.data,

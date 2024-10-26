@@ -22,7 +22,7 @@
               <div class="mb-3 form-check form-check-inline">
                 {{ form.login.remember_me(class_="form-check-input") }} {{ form.login.remember_me.label(class_="form-check-label") }}
               </div>
-              <div>{{ form.login.submit(class_="btn btn-primary") }}</div>
+              <div>{{ form.login.submit1(class_="btn btn-primary") }}</div>
             </form>
           </div>
         </div>
@@ -34,12 +34,13 @@
           <div class="card-body">
             <h5 class="card-title mb-3">Create a new profile</h5>
             <form action="" method="post">
+              {{ form.csrf_token }}
               <div class="mb-3">{{ form.register.first_name(class_="form-control") }}</div>
               <div class="mb-3">{{ form.register.last_name(class_="form-control") }}</div>
               <div class="mb-3">{{ form.register.username(class_="form-control") }}</div>
               <div class="mb-3">{{ form.register.password(class_="form-control",size=8) }}</div>
               <div class="mb-3">{{ form.register.confirm(class_="form-control",size=8) }}</div>
-              <div>{{ form.register.submit(class_="btn btn-primary") }}</div>
+              <div>{{ form.register.submit2(class_="btn btn-primary") }}</div>
             </form>
           </div>
         </div>

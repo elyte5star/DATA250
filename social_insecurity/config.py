@@ -27,6 +27,6 @@ class Config:
     ALLOWED_EXTENSIONS = {}
     WTF_CSRF_ENABLED = True
     PERMANENT_SESSION_LIFETIME = (
-        int(os.environ.get("PERMANENT_SESSION_LIFETIME")) or 10000
+        int(os.environ.get("PERMANENT_SESSION_LIFETIME")) or 30000
     )
     REMEMBER_COOKIE_DURATION = int(os.environ.get("REMEMBER_COOKIE_DURATION")) or 30000

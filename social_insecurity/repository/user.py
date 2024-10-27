@@ -2,6 +2,11 @@ from flask_login import UserMixin  # noqa: I001
 from social_insecurity import sqlite
 import sqlite3
 from typing import Union
+import social_insecurity.log as logger
+
+
+
+log = logger.get_logger("Database activities")
 
 
 class User(UserMixin):
@@ -42,7 +47,7 @@ def create_user(data: tuple) -> Union[str, Exception]:
         sqlite.connection.commit()
         return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -54,7 +59,7 @@ def get_user_by_username(username: str) -> Union[tuple, Exception]:
         cur.execute("SELECT * from Users where username = (?)", [username])
         return cur.fetchone()
     except sqlite3.Error as err:
-        print("Error getting  - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -71,7 +76,7 @@ def create_comment(comment_info: tuple) -> Union[str, Exception]:
         sqlite.connection.commit()
         return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -88,7 +93,7 @@ def create_post(post_info: tuple) -> Union[str, Exception]:
         sqlite.connection.commit()
         return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -104,7 +109,7 @@ def get_post(post_id: int) -> Union[tuple, Exception]:
         )
         return cur.fetchone()
     except sqlite3.Error as err:
-        print("Error getting  - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -124,7 +129,7 @@ def get_user_comments(post_id: str) -> Union[list, Exception]:
         )
         return cur.fetchall()
     except sqlite3.Error as err:
-        print("Error getting  - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -144,7 +149,7 @@ def get_posts_by_userid(userid: str) -> Union[list, Exception]:
         )
         return cur.fetchall()
     except sqlite3.Error as err:
-        print("Error getting  - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -156,7 +161,7 @@ def get_principal(userid: str) -> Union[tuple, Exception]:
         cur.execute("SELECT * from Users where userid = (?)", [userid])
         return cur.fetchone()
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -174,7 +179,7 @@ def create_user_friend(data: tuple) -> Union[str, Exception]:
         sqlite.connection.commit()
         return "Done - Row ID: " + str(cur.lastrowid)
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -186,7 +191,7 @@ def get_user_friends_ids(userid: str) -> Union[list, Exception]:
         cur.execute("SELECT f_id FROM Friends WHERE u_id = (?)", [userid])
         return cur.fetchall()
     except sqlite3.Error as err:
-        print("Error getting  - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -215,7 +220,7 @@ def update_user_profile(data: tuple) -> Union[str, Exception]:
         sqlite.connection.commit()
         return "Done - Row Affected: " + str(cur.rowcount)
     except sqlite3.Error as err:
-        print("Error - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()
@@ -231,7 +236,7 @@ def get_user_friends(userid: str) -> Union[list, Exception]:
         )
         return cur.fetchall()
     except sqlite3.Error as err:
-        print("Error getting  - " + err.args[0])
+        log.error("Error - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()

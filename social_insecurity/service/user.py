@@ -62,6 +62,7 @@ def load_user(user_id) -> Union[User, None]:
 @login_manager.unauthorized_handler
 def unauthorized():
     flash("Unauthorized, Please log in!", category="warning")
+    log.warning("Unauthorized attempt")
     return redirect(url_for("index"))
 
 

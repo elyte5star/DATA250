@@ -11,12 +11,10 @@ Example:
 """
 
 from __future__ import annotations
-
 import sqlite3
 from os import PathLike
 from pathlib import Path
 from typing import Any, Optional, cast
-
 from flask import Flask, current_app, g
 
 

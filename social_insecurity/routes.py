@@ -7,14 +7,8 @@ It also contains the SQL queries used for communicating with the database.
 from pathlib import Path  # noqa: I001
 
 from flask import current_app as app
-from flask import (
-    redirect,
-    render_template,
-    send_from_directory,
-    url_for,
-)
-from flask_login import login_required, current_user
-from social_insecurity import sqlite
+from flask import redirect, render_template, send_from_directory, url_for
+from flask_login import login_required, current_user, logout_user
 from social_insecurity.forms import (
     CommentsForm,
     FriendsForm,
@@ -36,9 +30,7 @@ from social_insecurity.service.user import (
     _get_user,
 )
 
-# @app.before_request
-# def make_session_permanent():
-#     session.permanent = True
+
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -80,7 +72,7 @@ def stream(username: str):
     Otherwise, it reads the username from the URL and displays all posts from the user and their friends.
     """
     post_form = PostForm()
-    if post_form.is_submitted():
+    if post_form.submit.data and post_form.validate_on_submit():
         if post_form.image.data:
             path = (
                 Path(app.instance_path)
@@ -89,14 +81,14 @@ def stream(username: str):
             )
             post_form.image.data.save(path)
         return _create_post(
-            username, post_form.content.data, post_form.image.data.filename
+            current_user, post_form.content.data, post_form.image.data.filename
         )
     return render_template(
         "stream.html.j2",
         title="Stream",
         username=username,
         form=post_form,
-        posts=_get_user_posts(username),
+        posts=_get_user_posts(current_user.get_id()),
     )
 
 
@@ -110,8 +102,8 @@ def comments(username: str, post_id: int):
     and post id from the URL and displays all comments for the post.
     """
     comments_form = CommentsForm()
-    if comments_form.is_submitted():
-        return _create_comment(username, post_id, comments_form.comment.data)
+    if comments_form.submit.data and comments_form.validate_on_submit():
+        _create_comment(current_user, post_id, comments_form.comment.data)
     return render_template(
         "comments.html.j2",
         title="Comments",
@@ -181,3 +173,10 @@ def uploads(filename):
     return send_from_directory(
         Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename
     )
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("index"))

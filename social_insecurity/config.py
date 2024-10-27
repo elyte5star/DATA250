@@ -26,7 +26,7 @@ class Config:
     UPLOADS_FOLDER_PATH = "uploads"
     ALLOWED_EXTENSIONS = {}
     WTF_CSRF_ENABLED = True
-    PERMANENT_SESSION_LIFETIME = (
-        int(os.environ.get("PERMANENT_SESSION_LIFETIME")) or 30000
-    )
-    REMEMBER_COOKIE_DURATION = int(os.environ.get("REMEMBER_COOKIE_DURATION")) or 30000
+    # PERMANENT_SESSION_LIFETIME = (
+    # int(os.environ.get("PERMANENT_SESSION_LIFETIME"))
+    # )
+    # REMEMBER_COOKIE_DURATION = int(os.environ.get("REMEMBER_COOKIE_DURATION"))

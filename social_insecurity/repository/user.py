@@ -11,19 +11,19 @@ class User(UserMixin):
         self.password = password
         self.authenticated = False
 
-    def is_active(self):
+    def is_active(self) -> bool:
         return self.is_active()
 
-    def is_anonymous(self):
+    def is_anonymous(self) -> bool:
         return False
 
     def is_authenticated(self):
         return self.authenticated
 
-    def get_id(self):
+    def get_id(self) -> str:
         return self.id
 
-    def get_username(self):
+    def get_username(self) -> str:
         return self.username
 
     def __repr__(self):
@@ -81,7 +81,7 @@ def create_post(post_info: tuple) -> Union[str, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute(
-            """INSERT INTO Comments (u_id, content, image, creation_time) 
+            """INSERT INTO Posts (u_id, content, image, creation_time) 
             VALUES (?, ?,?,?)""",
             post_info,
         )
@@ -99,7 +99,7 @@ def get_post(post_id: int) -> Union[tuple, Exception]:
         cur = sqlite.connection.cursor()
         cur.execute(
             """SELECT * FROM Posts AS p JOIN Users AS u ON p.u_id=
-            u.id  WHERE p.id = (?)""",
+            u.userid  WHERE p.id = (?)""",
             [post_id],
         )
         return cur.fetchone()
@@ -116,7 +116,7 @@ def get_user_comments(post_id: str) -> Union[list, Exception]:
         cur.execute(
             """
         SELECT DISTINCT *
-        FROM Comments AS c JOIN Users AS u ON c.u_id = u.id
+        FROM Comments AS c JOIN Users AS u ON c.u_id = u.userid
         WHERE c.p_id=(?)
         ORDER BY c.creation_time DESC
         """,
@@ -136,12 +136,11 @@ def get_posts_by_userid(userid: str) -> Union[list, Exception]:
         cur.execute(
             """
        SELECT p.*, u.*, (SELECT COUNT(*) FROM Comments WHERE p_id = p.id) AS cc
-          FROM Posts AS p JOIN Users AS u ON u.id = p.u_id
-          WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id =
-        (?) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = (?)) OR p.u_id=(?)
-       ORDER BY p.creation_time DESC;
+         FROM Posts AS p JOIN Users AS u ON u.userid = p.u_id
+         WHERE p.u_id IN (SELECT u_id FROM Friends WHERE f_id = ?) OR p.u_id IN (SELECT f_id FROM Friends WHERE u_id = ?) OR p.u_id = ?
+         ORDER BY p.creation_time DESC
         """,
-            [userid, userid],
+            [userid, userid, userid],
         )
         return cur.fetchall()
     except sqlite3.Error as err:
@@ -151,14 +150,14 @@ def get_posts_by_userid(userid: str) -> Union[list, Exception]:
         cur.close()
 
 
-def get_principal(userid: str) -> Union[tuple, None, Exception]:
+def get_principal(userid: str) -> Union[tuple, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute("SELECT * from Users where userid = (?)", [userid])
         return cur.fetchone()
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
-        return None
+        return "Error - " + err.args[0]
     finally:
         cur.close()
 
@@ -168,9 +167,8 @@ def create_user_friend(data: tuple) -> Union[str, Exception]:
         cur = sqlite.connection.cursor()
         cur.execute(
             """
-                INSERT INTO Friends (u_id, f_id)
-                VALUES (?, ?)
-                """,
+            INSERT INTO Friends (u_id, f_id) VALUES (?, ?)
+            """,
             data,
         )
         sqlite.connection.commit()
@@ -182,7 +180,7 @@ def create_user_friend(data: tuple) -> Union[str, Exception]:
         cur.close()
 
 
-def get_user_friends(userid: str) -> Union[list, Exception]:
+def get_user_friends_ids(userid: str) -> Union[list, Exception]:
     try:
         cur = sqlite.connection.cursor()
         cur.execute("SELECT f_id FROM Friends WHERE u_id = (?)", [userid])
@@ -204,12 +202,13 @@ def update_user_profile(data: tuple) -> Union[str, Exception]:
         cur.execute(
             """
                UPDATE Users
-            SET education=(?), employment=(?),
+            SET education=(?), 
+            employment=(?),
                 music=(?), movie=(?),
                 nationality=(?), birthday=(?),
                 modification_time=(?),
-                modified_by=(?),
-            WHERE username=?;
+                modified_by=(?)
+            WHERE username=(?);
                 """,
             data,
         )
@@ -217,6 +216,22 @@ def update_user_profile(data: tuple) -> Union[str, Exception]:
         return "Done - Row Affected: " + str(cur.rowcount)
     except sqlite3.Error as err:
         print("Error - " + err.args[0])
+        return "Error - " + err.args[0]
+    finally:
+        cur.close()
+
+
+def get_user_friends(userid: str) -> Union[list, Exception]:
+    try:
+        cur = sqlite.connection.cursor()
+        cur.execute(
+            """SELECT * FROM Friends AS f JOIN Users as u ON f.f_id = u.userid
+        WHERE f.u_id = (?) AND f.f_id != (?)""",
+            [userid, userid],
+        )
+        return cur.fetchall()
+    except sqlite3.Error as err:
+        print("Error getting  - " + err.args[0])
         return "Error - " + err.args[0]
     finally:
         cur.close()

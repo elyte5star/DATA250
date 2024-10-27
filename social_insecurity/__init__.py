@@ -7,10 +7,10 @@ from pathlib import Path
 from shutil import rmtree
 from typing import cast
 
-from flask import Flask, current_app  # type: ignore
-from flask_bcrypt import Bcrypt  # type: ignore
-from flask_login import LoginManager  # type: ignore
-from flask_wtf.csrf import CSRFProtect  # type: ignore
+from flask import Flask, current_app, session
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 
 from social_insecurity.config import Config
 from social_insecurity.database import SQLite3
@@ -20,6 +20,7 @@ login_manager = LoginManager()
 login_manager.session_protection = "strong"
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
+login_manager.login_view = "index"
 
 
 def create_app(test_config=None) -> Flask:

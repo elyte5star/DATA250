@@ -41,12 +41,14 @@ class LoginForm(FlaskForm):
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
-        validators=[validators.DataRequired(message=("Username must be within 4-25"))],
+        validators=[validators.DataRequired(
+            message=("Please enter a valid Username"))],
     )
     password = PasswordField(
         label="Password",
         render_kw={"placeholder": "Password"},
-        validators=[validators.DataRequired(message=("Password must be within 8-35"))],
+        validators=[validators.DataRequired(
+            message=("Please enter Password"))],
     )
     remember_me = BooleanField(label="Remember me")
     submit1 = SubmitField(label="Sign In")
@@ -98,7 +100,7 @@ class PostForm(FlaskForm):
     content = TextAreaField(
         label="New Post",
         render_kw={"placeholder": "What are you thinking about?"},
-        validators=[validators.InputRequired(), validators.Length(max=200)],
+        validators=[validators.DataRequired(), validators.Length(max=200)],
     )
     image = FileField(label="Image")
     submit = SubmitField(label="Post")
@@ -110,7 +112,7 @@ class CommentsForm(FlaskForm):
     comment = TextAreaField(
         label="New Comment",
         render_kw={"placeholder": "What do you have to say?"},
-        validators=[validators.InputRequired(), validators.Length(max=200)],
+        validators=[validators.DataRequired(message="Please enter your message"), validators.Length(max=200)],
     )
     submit = SubmitField(label="Comment")
 
@@ -121,7 +123,7 @@ class FriendsForm(FlaskForm):
     username = StringField(
         label="Friend's username",
         render_kw={"placeholder": "Username"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter a friends username")],
     )
     submit = SubmitField(label="Add Friend")
 
@@ -132,29 +134,29 @@ class ProfileForm(FlaskForm):
     education = StringField(
         label="Education",
         render_kw={"placeholder": "Highest education"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter Highest education")],
     )
     employment = StringField(
         label="Employment",
         render_kw={"placeholder": "Current employment"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter Current employment")],
     )
     music = StringField(
         label="Favorite song",
         render_kw={"placeholder": "Favorite song"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter Favorite song")],
     )
     movie = StringField(
         label="Favorite movie",
         render_kw={"placeholder": "Favorite movie"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter Favorite movie")],
     )
     nationality = StringField(
         label="Nationality",
         render_kw={"placeholder": "Your nationality"},
-        validators=[validators.DataRequired()],
+        validators=[validators.DataRequired(message="Please enter Your nationality")],
     )
     birthday = DateField(
-        label="Your Birthday", validators=[validators.DataRequired()]
+        label="Your Birthday", validators=[validators.DataRequired(message="Please enter Your Birthday")]
     )
     submit = SubmitField(label="Update Profile")

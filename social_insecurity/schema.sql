@@ -25,7 +25,7 @@ CREATE TABLE [Users] (
 CREATE TABLE [Posts](
   id INTEGER PRIMARY KEY,
   u_id VARCHAR(60),
-  content INTEGER,
+  content VARCHAR(300),
   [image] VARCHAR,
   [creation_time] DATETIME,
   FOREIGN KEY (u_id) REFERENCES [Users](userid)

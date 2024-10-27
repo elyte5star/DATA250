@@ -20,9 +20,15 @@ from typing import Union
 from datetime import datetime, timedelta
 import uuid
 from flask import current_app as app
+import social_insecurity.log as logger
+
 
 REMEMBER_COOKIE_DURATION = timedelta(minutes=10)
 PERMANENT_SESSION_LIFETIME = timedelta(minutes=5)
+
+
+
+log = logger.get_logger("User actions")
 
 
 def get_indent() -> str:

@@ -86,7 +86,7 @@ def stream(username: str):
     return render_template(
         "stream.html.j2",
         title="Stream",
-        username=username,
+        username=current_user.get_username(),
         form=post_form,
         posts=_get_user_posts(current_user.get_id()),
     )

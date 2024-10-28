@@ -14,18 +14,18 @@ from social_insecurity.repository.user import (
     update_user_profile,
     get_user_friends,
 )
-from flask import flash, abort, redirect, url_for, session
+from flask import flash, abort, redirect, url_for, request,session
 from flask_login import login_user
 from typing import Union
 from datetime import datetime, timedelta
 import uuid
 from flask import current_app as app
 import social_insecurity.log as logger
+from urllib.parse import urlsplit
 
 
-REMEMBER_COOKIE_DURATION = timedelta(minutes=10)
-PERMANENT_SESSION_LIFETIME = timedelta(minutes=5)
-
+REMEMBER_COOKIE_DURATION = timedelta(minutes=2)
+PERMANENT_SESSION_LIFETIME = timedelta(minutes=2)
 
 
 log = logger.get_logger("User actions")
@@ -76,37 +76,38 @@ def _find_user_by_username(username: str) -> User:
 def _login(username: str, password: str, remember_me: bool):
     user = _find_user_by_username(username)
     if user is not None:
-        user = load_user(user.id)
         if bcrypt.check_password_hash(user.password, password):
             flash("you were just logged in!", category="success")
             login_user(user, remember=remember_me, duration=REMEMBER_COOKIE_DURATION)
             session.permanent = True
             app.permanent_session_lifetime = PERMANENT_SESSION_LIFETIME
-            return redirect(url_for("stream", username=user.username))
-    flash("Invalid username/password!", category="warning")
+            next_page = request.args.get("next")
+            if not next_page or urlsplit(next_page).netloc != "":
+                next_page = url_for("stream")
+            return redirect(next_page)
+    flash("Invalid username or password!", category="danger")
     return redirect(url_for("index"))
 
 
 def _create_user(username: str, first_name: str, lastname: str, password):
-    hashed_password = bcrypt.generate_password_hash(password)
-    user_info = (
-        get_indent(),
-        username,
-        first_name,
-        lastname,
-        get_indent(),
-        hashed_password,
-        time_now_utc(),
-        time_now_utc(),
-    )
-    response = create_user(user_info)
-    if "Error" in response:
-        message = "Operation unsuccessful!!"
-        if "Error - UNIQUE" in response:
-            message = "User already exist!"
-        flash(message, category="warning")
+    find_user = _find_user_by_username(username)
+    if find_user is None:
+        hashed_password = bcrypt.generate_password_hash(password)
+        user_info = (
+            get_indent(),
+            username,
+            first_name,
+            lastname,
+            get_indent(),
+            hashed_password,
+            time_now_utc(),
+            time_now_utc(),
+        )
+        response = create_user(user_info)
+        log.info(response)
+        flash(f"User successfully with id {user_info[4]} created!", category="success")
         return redirect(url_for("index"))
-    flash("User successfully created!", category="success")
+    flash("Operation unsuccessful, user already exits!!", category="warning")
     return redirect(url_for("index"))
 
 
@@ -225,5 +226,5 @@ def _update_user_profile(
     )
     response = update_user_profile(modify)
     if "Error" not in response:
-        return redirect(url_for("profile", username=current_user.get_username()))
+        return redirect(url_for("profile"))
     abort(500, "Operation unsuccessful!")

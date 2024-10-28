@@ -3,7 +3,7 @@
 -- --
 
 CREATE TABLE [Users] (
-  id INTEGER NOT NULL UNIQUE,
+  id INTEGER NOT NULL,
   userid VARCHAR(60) NOT NULL UNIQUE,
   username VARCHAR(60) NOT NULL UNIQUE,
   first_name VARCHAR(60) NOT NULL,

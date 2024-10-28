@@ -34,6 +34,7 @@ def create_app(test_config=None) -> Flask:
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
+    app.config['MAX_LOGIN_ATTEMPTS'] = 3
 
     with app.app_context():
         create_uploads_folder(app)

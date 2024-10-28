@@ -41,14 +41,12 @@ class LoginForm(FlaskForm):
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
-        validators=[validators.DataRequired(
-            message=("Please enter a valid Username"))],
+        validators=[validators.DataRequired(message=("Please enter a valid Username"))],
     )
     password = PasswordField(
         label="Password",
         render_kw={"placeholder": "Password"},
-        validators=[validators.DataRequired(
-            message=("Please enter Password"))],
+        validators=[validators.DataRequired(message=("Please enter Password"))],
     )
     remember_me = BooleanField(label="Remember me")
     submit1 = SubmitField(label="Sign In")
@@ -65,13 +63,20 @@ class RegisterForm(FlaskForm):
     last_name = StringField(
         label="Last Name",
         render_kw={"placeholder": "Last Name"},
-        validators=[validators.DataRequired(message="Please enter your surname")],
+        validators=[
+            validators.DataRequired(message="Please enter your surname"),
+        ],
     )
     username = StringField(
         label="Username",
         render_kw={"placeholder": "Username"},
         validators=[
-            validators.Length(min=4, max=25, message=("Username must be within 4-25"))
+            validators.Length(min=4, max=25, message=("Username must be within 4-25")),
+            validators.Regexp(
+                "^[A-Za-z][A-Za-z0-9_.]*$",
+                0,
+                "Usernames must have only letters, " "numbers, dots or underscores",
+            ),
         ],
     )
     password = PasswordField(
@@ -84,7 +89,10 @@ class RegisterForm(FlaskForm):
     confirm = PasswordField(
         label="Confirm Password",
         render_kw={"placeholder": "Confirm Password"},
-        validators=[validators.EqualTo("password", message="Passwords must match")],
+        validators=[
+            validators.Length(min=8, max=35),
+            validators.EqualTo("password", message="Passwords must match!"),
+        ],
     )
     submit2 = SubmitField(label="Sign Up")
 
@@ -112,7 +120,10 @@ class CommentsForm(FlaskForm):
     comment = TextAreaField(
         label="New Comment",
         render_kw={"placeholder": "What do you have to say?"},
-        validators=[validators.DataRequired(message="Please enter your message"), validators.Length(max=200)],
+        validators=[
+            validators.DataRequired(message="Please enter your message"),
+            validators.Length(max=200),
+        ],
     )
     submit = SubmitField(label="Comment")
 
@@ -157,6 +168,7 @@ class ProfileForm(FlaskForm):
         validators=[validators.DataRequired(message="Please enter Your nationality")],
     )
     birthday = DateField(
-        label="Your Birthday", validators=[validators.DataRequired(message="Please enter Your Birthday")]
+        label="Your Birthday",
+        validators=[validators.DataRequired(message="Please enter Your Birthday")],
     )
     submit = SubmitField(label="Update Profile")

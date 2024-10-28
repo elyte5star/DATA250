@@ -74,9 +74,13 @@ def stream():
         if post_form.image.data:
             f = post_form.image.data
             filename = secure_filename(f.filename)
-            path = Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / filename
+            path = (
+                Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / filename
+            )
             f.save(path)
-        return _create_post(current_user, post_form.content.data, post_form.image.data.filename)
+        return _create_post(
+            current_user, post_form.content.data, post_form.image.data.filename
+        )
     return render_template(
         "stream.html.j2",
         title="Stream",
@@ -170,7 +174,9 @@ def profile():
 @login_required
 def uploads(filename):
     """Provides an endpoint for serving uploaded files."""
-    return send_from_directory(Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename)
+    return send_from_directory(
+        Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename
+    )
 
 
 @app.route("/logout")
@@ -178,3 +184,13 @@ def uploads(filename):
 def logout():
     logout_user()
     return redirect(url_for("index"))
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template("500.html"), 500

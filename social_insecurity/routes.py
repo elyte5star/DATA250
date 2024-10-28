@@ -8,7 +8,7 @@ from pathlib import Path  # noqa: I001
 from werkzeug.utils import secure_filename
 from flask import current_app as app
 from flask import redirect, render_template, send_from_directory, url_for
-from flask_login import login_required, current_user, logout_user,fresh_login_required
+from flask_login import login_required, current_user, logout_user, fresh_login_required
 from social_insecurity.forms import (
     CommentsForm,
     FriendsForm,
@@ -74,13 +74,9 @@ def stream():
         if post_form.image.data:
             f = post_form.image.data
             filename = secure_filename(f.filename)
-            path = (
-                Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / filename
-            )
+            path = Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / filename
             f.save(path)
-        return _create_post(
-            current_user, post_form.content.data, post_form.image.data.filename
-        )
+        return _create_post(current_user, post_form.content.data, post_form.image.data.filename)
     return render_template(
         "stream.html.j2",
         title="Stream",
@@ -99,6 +95,10 @@ def comments(username: str, post_id: int):
     Otherwise, it reads the username
     and post id from the URL and displays all comments for the post.
     """
+    # manage access control
+    if current_user.get_username() != username:
+        return app.login_manager.unauthorized()
+
     comments_form = CommentsForm()
     if comments_form.submit.data and comments_form.validate_on_submit():
         _create_comment(current_user, post_id, comments_form.comment.data)
@@ -170,9 +170,7 @@ def profile():
 @login_required
 def uploads(filename):
     """Provides an endpoint for serving uploaded files."""
-    return send_from_directory(
-        Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename
-    )
+    return send_from_directory(Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"], filename)
 
 
 @app.route("/logout")

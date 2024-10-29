@@ -1,4 +1,4 @@
-from social_insecurity import login_manager, bcrypt  # noqa: I001
+from social_insecurity import login_manager, bcrypt, limiter  # noqa: I001
 from social_insecurity.repository.user import (
     User,
     get_principal,
@@ -14,7 +14,7 @@ from social_insecurity.repository.user import (
     update_user_profile,
     get_user_friends,
 )
-from flask import flash, abort, redirect, url_for, request,session
+from flask import flash, abort, redirect, url_for, request, session
 from flask_login import login_user
 from typing import Union
 from datetime import datetime, timedelta
@@ -22,29 +22,25 @@ import uuid
 from flask import current_app as app
 import social_insecurity.log as logger
 from urllib.parse import urlsplit
+from werkzeug.utils import secure_filename
+from pathlib import Path
 
-
-REMEMBER_COOKIE_DURATION = timedelta(minutes=2)
-PERMANENT_SESSION_LIFETIME = timedelta(minutes=2)
+REMEMBER_COOKIE_DURATION = timedelta(minutes=15)
+PERMANENT_SESSION_LIFETIME = timedelta(minutes=10)
 
 
 log = logger.get_logger("User actions")
 
 
+def allowed_file(filename: str):
+    return (
+        "." in filename
+        and filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
+    )
+
+
 def get_indent() -> str:
     return str(uuid.uuid4())
-
-
-def creation_time() -> str:
-    """
-    Get the current time in ISO 8601 format.
-
-    Returns
-    -------
-    str
-        The current time in ISO 8601 format.
-    """
-    return datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def time_now_utc() -> datetime:
@@ -56,23 +52,51 @@ def load_user(user_id) -> Union[User, None]:
     user = get_principal(user_id)
     if user is None:
         return None
-    return User(user[1], user[2], user[5])
+    active = int(user[9]) == 1
+    return User(user[1], user[2], user[5], active)
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    log.warning(f"ratelimit exceeded {e.description}")
+    flash("Too Many Requests,limits exceeded!", category="danger")
+    return redirect(url_for("index"))
 
 
 @login_manager.unauthorized_handler
 def unauthorized():
     flash("Unauthorized, Please log in!", category="warning")
-    log.warning("Unauthorized attempt")
     return redirect(url_for("index"))
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    flash("Page not found!", category="warning")
+    log.warning(f"Page not found! {error.description}")
+    return redirect(url_for("stream"))
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    flash("Operation unsuccessful", category="warning")
+    log.error(f"Server error {error.description}")
+    return redirect(url_for("stream"))
 
 
 def _find_user_by_username(username: str) -> User:
     user = get_user_by_username(username)
     if user is not None:
-        return User(user[1], user[2], user[5])
+        active = int(user[9]) == 1
+        return User(user[1], user[2], user[5], active)
     return None
 
 
+def get_ipaddress():
+    ip_address = request.headers.get("X-Forwarded-For", request.remote_addr)
+    return ip_address
+
+
+@limiter.limit("3 per minute", key_func=lambda: get_ipaddress)
 def _login(username: str, password: str, remember_me: bool):
     user = _find_user_by_username(username)
     if user is not None:
@@ -86,6 +110,7 @@ def _login(username: str, password: str, remember_me: bool):
                 next_page = url_for("stream")
             return redirect(next_page)
     flash("Invalid username or password!", category="danger")
+    log.warning(f"Failed login attempt by user :{username}")
     return redirect(url_for("index"))
 
 
@@ -186,8 +211,14 @@ def _get_friends_ids(userid: str):
     return ids
 
 
-def upload_file():
-    pass
+def upload_file(file):
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        path = Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / filename
+        file.save(path)
+        flash(f"Picture with name {filename} uploaded!", category="success")
+    else:
+        flash("Invalid file type!", category="warning")
 
 
 def _get_user(username: str) -> User:

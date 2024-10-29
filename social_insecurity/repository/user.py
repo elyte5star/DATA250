@@ -5,19 +5,19 @@ from typing import Union
 import social_insecurity.log as logger
 
 
-
 log = logger.get_logger("Database activities")
 
 
 class User(UserMixin):
-    def __init__(self, userid, username, password):
+    def __init__(self, userid, username, password, active):
         self.id = userid
         self.username = username
         self.password = password
         self.authenticated = False
+        self.active = active
 
     def is_active(self) -> bool:
-        return self.is_active()
+        return self.active
 
     def is_anonymous(self) -> bool:
         return False

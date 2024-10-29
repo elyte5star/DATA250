@@ -24,7 +24,7 @@ class Config:
     SECRET_KEY: str = os.environ.get("SECRET_KEY") or "secret"
     SQLITE3_DATABASE_PATH = "sqlite3.db"
     UPLOADS_FOLDER_PATH = "uploads"
-    ALLOWED_EXTENSIONS = {}
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     WTF_CSRF_ENABLED = True
     # PERMANENT_SESSION_LIFETIME = (
     # int(os.environ.get("PERMANENT_SESSION_LIFETIME"))

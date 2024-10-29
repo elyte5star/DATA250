@@ -13,11 +13,14 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 
 from social_insecurity.config import Config
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from social_insecurity.database import SQLite3
 
 sqlite = SQLite3()
 login_manager = LoginManager()
 login_manager.session_protection = "strong"
+limiter = Limiter(key_func=get_remote_address, storage_uri="memory://")
 bcrypt = Bcrypt()
 csrf = CSRFProtect()
 login_manager.login_view = "index"
@@ -34,7 +37,8 @@ def create_app(test_config=None) -> Flask:
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
-    app.config['MAX_LOGIN_ATTEMPTS'] = 3
+    limiter.init_app(app)
+    app.config["MAX_LOGIN_ATTEMPTS"] = 3
 
     with app.app_context():
         create_uploads_folder(app)

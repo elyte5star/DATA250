@@ -12,6 +12,7 @@ CREATE TABLE [Users] (
   [creation_time] DATETIME NOT NULL,
   [modification_time] DATETIME NOT NULL,
   modified_by VARCHAR(60) NOT NULL DEFAULT 'NewAccount',
+  active BOOLEAN NOT NULL DEFAULT 1,
   education VARCHAR(30) DEFAULT 'Unknown',
   employment VARCHAR(30) DEFAULT 'Unknown',
   music VARCHAR(30) DEFAULT 'Unknown',

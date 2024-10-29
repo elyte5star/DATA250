@@ -28,6 +28,7 @@ from social_insecurity.service.user import (
     _get_user_friends,
     _update_user_profile,
     _get_user,
+    upload_file,
 )
 
 
@@ -72,12 +73,7 @@ def stream():
     post_form = PostForm()
     if post_form.submit.data and post_form.validate_on_submit():
         if post_form.image.data:
-            f = post_form.image.data
-            filename = secure_filename(f.filename)
-            path = (
-                Path(app.instance_path) / app.config["UPLOADS_FOLDER_PATH"] / filename
-            )
-            f.save(path)
+            upload_file(post_form.image.data)
         return _create_post(
             current_user, post_form.content.data, post_form.image.data.filename
         )
@@ -184,13 +180,3 @@ def uploads(filename):
 def logout():
     logout_user()
     return redirect(url_for("index"))
-
-
-@app.errorhandler(404)
-def page_not_found(error):
-    return render_template("404.html"), 404
-
-
-@app.errorhandler(500)
-def internal_server_error(error):
-    return render_template("500.html"), 500
